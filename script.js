@@ -911,12 +911,7 @@ function drawSpeedTapChoices(playerNum, containerEl) {
         img.src = `images/${choice.id}.png`;
         img.alt = choice.nameEn;
 
-        const word = document.createElement('span');
-        word.classList.add('tap-choice-word');
-        word.textContent = choice.nameEn;
-
         btn.appendChild(img);
-        btn.appendChild(word);
 
         btn.addEventListener('click', () => handleTapChoice(playerNum, choice, btn));
         containerEl.appendChild(btn);
