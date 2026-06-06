@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Phonics Job Arcade - คลังเกมอาชีพแสนสนุก</title>
+    <!-- Google Fonts: Outfit (English) & Mitr (Thai, rounded friendly style) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        
+        <!-- Screen 1: ตั้งค่าผู้เล่น (Setup Screen) -->
+        <div id="setup-screen" class="screen active">
+            <div class="logo-container">
+                <div class="logo-icon">👩‍🏫 🧑‍⚕️ 👨‍🚒</div>
+                <h1>Phonics Job Arcade</h1>
+                <p class="subtitle">คลังเกมสะกดคำอาชีพแสนสนุกของเด็กๆ</p>
+            </div>
+            
+            <div class="setup-card">
+                <div class="input-group">
+                    <label for="p1-name">👧 ผู้เล่นคนที่หนึ่ง (Player 1)</label>
+                    <input type="text" id="p1-name" value="น้องอันดา" placeholder="ชื่อผู้เล่นคนแรก" autocomplete="off">
+                </div>
+                
+                <div class="input-group">
+                    <label for="p2-name">👦 ผู้เล่นคนที่สอง (Player 2)</label>
+                    <input type="text" id="p2-name" value="พี่อชิ" placeholder="ชื่อผู้เล่นคนที่สอง" autocomplete="off">
+                </div>
+                
+                <button id="start-btn" class="btn btn-primary">เข้าสู่คลังเกมส์! 🎮</button>
+            </div>
+            
+            <div class="how-to-play">
+                <h3>💡 สิ่งที่จะได้รับจากคลังเกมนี้</h3>
+                <ul>
+                    <li>1. **Phonics Job XO:** ฝึกพูดออกเสียงสะกดคำแข่งกัน 2 คน</li>
+                    <li>2. **Memory Match:** พัฒนาความจำด้วยการจับคู่การ์ดภาพกับคำศัพท์</li>
+                    <li>3. **Word Builder:** เรียนรู้หลักตัวอักษรและการสะกดคำศัพท์อย่างสนุกสนาน</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Screen 2: เมนูหลักอาเขต (Arcade Menu Screen) -->
+        <div id="arcade-screen" class="screen">
+            <header class="game-header">
+                <button id="arcade-back-btn" class="btn btn-icon">⚙️ ตั้งค่าใหม่</button>
+                <div class="game-title">Arcade Menu</div>
+                <div class="player-hello">สวัสดี <span class="p1-text" id="hello-p1">อันดา</span> & <span class="p2-text" id="hello-p2">อชิ</span></div>
+            </header>
+            
+            <div class="arcade-title">
+                <h2>เลือกเกมส์ที่อยากเล่นได้เลย 🚀</h2>
+                <p>ฝึกออกเสียงและสนุกไปกับคำศัพท์อาชีพ</p>
+            </div>
+
+            <div class="arcade-grid">
+                <!-- การ์ดเกม 1: XO -->
+                <div class="arcade-game-card" id="play-xo-card">
+                    <div class="game-badge green-badge">แข่ง 2 คน</div>
+                    <div class="game-card-icon">⭕❌</div>
+                    <h3>Phonics Job XO</h3>
+                    <p>แตะช่อง ออกเสียงอาชีพภาษาอังกฤษ แข่งกันเรียงแถวแนวตั้ง แนวนอน หรือแนวทแยง</p>
+                    <button class="btn btn-primary btn-sm">คลิกเล่นเกม XO</button>
+                </div>
+
+                <!-- การ์ดเกม 2: Memory Match -->
+                <div class="arcade-game-card" id="play-memory-card">
+                    <div class="game-badge purple-badge">เล่นคู่ / เล่นเดี่ยว</div>
+                    <div class="game-card-icon">🧠🃏</div>
+                    <h3>Job Memory Match</h3>
+                    <p>คว่ำการ์ดจับคู่ "รูปภาพอาชีพ" กับ "คำศัพท์ภาษาอังกฤษ" ฝึกสมองความจำ</p>
+                    <button class="btn btn-primary btn-sm">คลิกเล่นจับคู่การ์ด</button>
+                </div>
+
+                <!-- การ์ดเกม 3: Word Builder -->
+                <div class="arcade-game-card" id="play-spelling-card">
+                    <div class="game-badge orange-badge">ฝึกฝนทักษะ</div>
+                    <div class="game-card-icon">✏️🧩</div>
+                    <h3>Phonics Word Builder</h3>
+                    <p>เห็นภาพอาชีพ ฟังเสียงพูด แล้วแตะเลือกตัวอักษรเรียงสะกดคำศัพท์ให้ถูกต้อง</p>
+                    <button class="btn btn-primary btn-sm">คลิกเล่นฝึกสะกดคำ</button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Screen 3: เกม XO (Job XO Screen) -->
+        <div id="xo-screen" class="screen">
+            <header class="game-header">
+                <button class="btn btn-icon btn-back-menu">🎮 คลังเกมส์</button>
+                <div class="game-title">Phonics Job XO</div>
+                <button class="btn btn-icon mute-toggle-btn">🔊 มีเสียง</button>
+            </header>
+
+            <div class="scoreboard">
+                <div class="player-score card p1-card active" id="xo-p1-panel">
+                    <div class="avatar pink-avatar">👧</div>
+                    <div class="score-info">
+                        <span class="player-name display-p1-name-txt">น้องอันดา</span>
+                        <span class="score" id="xo-p1-score">0</span>
+                    </div>
+                    <div class="mark-indicator">X</div>
+                </div>
+                
+                <div class="vs-divider">VS</div>
+                
+                <div class="player-score card p2-card" id="xo-p2-panel">
+                    <div class="avatar blue-avatar">👦</div>
+                    <div class="score-info">
+                        <span class="player-name display-p2-name-txt">พี่อชิ</span>
+                        <span class="score" id="xo-p2-score">0</span>
+                    </div>
+                    <div class="mark-indicator">O</div>
+                </div>
+            </div>
+
+            <div class="turn-message" id="xo-turn-banner">
+                ตาของ <span id="xo-current-turn-name" class="p1-text">น้องอันดา (X)</span> แล้ว! แตะช่องตารางได้เลย
+            </div>
+
+            <div class="board-container">
+                <div class="xo-board" id="xo-board-grid">
+                    <!-- สร้างด้วย JS -->
+                </div>
+            </div>
+
+            <div class="control-actions">
+                <button id="xo-reset-board-btn" class="btn btn-secondary">🔄 เล่นใหม่อีกรอบ</button>
+                <button id="xo-reset-scores-btn" class="btn btn-outline">🗑️ ล้างคะแนน</button>
+            </div>
+        </div>
+
+        <!-- Screen 4: เกมจับคู่การ์ดความจำ (Memory Match Screen) -->
+        <div id="memory-screen" class="screen">
+            <header class="game-header">
+                <button class="btn btn-icon btn-back-menu">🎮 คลังเกมส์</button>
+                <div class="game-title">Job Memory Match</div>
+                <button class="btn btn-icon mute-toggle-btn">🔊 มีเสียง</button>
+            </header>
+
+            <!-- ตัวเลือกโหมดเล่นการ์ดจับคู่ -->
+            <div class="mode-selector-container">
+                <div class="mode-selector">
+                    <button id="mem-mode-vs" class="mode-btn active">⚔️ แข่งกัน 2 คน (Versus)</button>
+                    <button id="mem-mode-solo" class="mode-btn">👤 เล่นเดี่ยว (Solo)</button>
+                </div>
+            </div>
+
+            <!-- คะแนนของผู้เล่นจับคู่ (เฉพาะ Versus) -->
+            <div class="scoreboard" id="mem-scoreboard-vs">
+                <div class="player-score card p1-card active" id="mem-p1-panel">
+                    <div class="avatar pink-avatar">👧</div>
+                    <div class="score-info">
+                        <span class="player-name display-p1-name-txt">น้องอันดา</span>
+                        <span class="score" id="mem-p1-score">0</span>
+                    </div>
+                    <div class="mark-indicator">🎯</div>
+                </div>
+                <div class="vs-divider">VS</div>
+                <div class="player-score card p2-card" id="mem-p2-panel">
+                    <div class="avatar blue-avatar">👦</div>
+                    <div class="score-info">
+                        <span class="player-name display-p2-name-txt">พี่อชิ</span>
+                        <span class="score" id="mem-p2-score">0</span>
+                    </div>
+                    <div class="mark-indicator">🎯</div>
+                </div>
+            </div>
+
+            <!-- แผงข้อมูลในโหมด Solo (ซ่อนในโหมด Versus) -->
+            <div class="solo-info-card" id="mem-solo-info" style="display: none;">
+                <div class="solo-stat">⏱️ เวลา: <span id="mem-timer">0</span> วินาที</div>
+                <div class="solo-stat">🔥 พลิกคู่การ์ด: <span id="mem-moves">0</span> ครั้ง</div>
+            </div>
+
+            <div class="turn-message" id="mem-turn-banner">
+                ตาของ <span id="mem-current-turn-name" class="p1-text">น้องอันดา</span> แล้ว! พลิกการ์ด 2 ใบให้ตรงกัน
+            </div>
+
+            <div class="board-container">
+                <div class="memory-board" id="memory-board-grid">
+                    <!-- สร้างช่องการ์ดคว่ำด้วย JS -->
+                </div>
+            </div>
+
+            <div class="control-actions">
+                <button id="mem-reset-btn" class="btn btn-secondary">🔄 เริ่มใหม่การ์ดผสมใหม่</button>
+            </div>
+        </div>
+
+        <!-- Screen 5: เกมต่ออักษรสะกดคำ (Word Builder Screen) -->
+        <div id="spelling-screen" class="screen">
+            <header class="game-header">
+                <button class="btn btn-icon btn-back-menu">🎮 คลังเกมส์</button>
+                <div class="game-title">Phonics Word Builder</div>
+                <button class="btn btn-icon mute-toggle-btn">🔊 มีเสียง</button>
+            </header>
+
+            <div class="spelling-hud">
+                <div class="hud-item">🏆 คะแนนสะสม: <span id="spell-score">0</span></div>
+                <div class="hud-item">📈 ด่านที่: <span id="spell-progress">1 / 9</span></div>
+            </div>
+
+            <!-- บอร์ดสะกดคำ -->
+            <div class="spelling-arena">
+                <!-- แสดงภาพอาชีพขนาดใหญ่จริงสวยๆ -->
+                <div class="spelling-image-card">
+                    <img id="spell-image" src="images/teacher.png" alt="Job Image">
+                    <button id="spell-speak-btn" class="speak-repeat-btn">🔊 ฟังอีกครั้ง (Listen)</button>
+                </div>
+                
+                <!-- คำศัพท์ภาษาไทยประกอบคำใบ้ -->
+                <div class="spelling-hint-th" id="spell-hint-th">ความหมาย: คุณครู</div>
+
+                <!-- ช่องคำตอบเปล่าเพื่อเขียนเรียงตัวสะกด (Letter Answer Slots) -->
+                <div class="letter-slots-container" id="letter-slots">
+                    <!-- ช่อง [ ] [ ] [ ] จะถูกเขียนลงในนี้ตามความยาวตัวอักษรคำศัพท์ -->
+                </div>
+
+                <!-- แผงอักษรเดี่ยวผสมให้เด็กเลือกแตะ (Scrambled Letters) -->
+                <div class="letter-bank-container" id="letter-bank">
+                    <!-- ปุ่มตัวอักษรกลมๆ พาสเทลจะขึ้นตรงนี้ -->
+                </div>
+            </div>
+
+            <div class="control-actions">
+                <button id="spell-skip-btn" class="btn btn-secondary">⏭️ ข้ามไปคำถัดไป</button>
+            </div>
+        </div>
+
+
+    </div>
+
+    <!-- หน้าต่างประกาศชัยชนะ (Winner Modal) -->
+    <div id="win-modal" class="modal-overlay">
+        <canvas id="confetti-canvas"></canvas>
+        <div class="modal-content">
+            <div class="trophy-icon">🏆</div>
+            <h2 id="win-title">เย้! น้องอันดา ชนะแล้ว</h2>
+            <p id="win-subtitle" class="win-phrase">"A doctor helps sick people."</p>
+            <div class="modal-buttons">
+                <button id="modal-next-btn" class="btn btn-primary">เล่นใหม่อีกรอบ 🎮</button>
+                <button id="modal-home-btn" class="btn btn-secondary">กลับหน้าคลังเกมส์</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
