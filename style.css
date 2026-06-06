@@ -1316,3 +1316,444 @@ body {
     .tap-score { font-size: 16px; }
     .tap-status { font-size: 12px; }
 }
+
+/* --- [การ์ดเมนูสำหรับ Store และ Embed] --- */
+#play-store-card { border-left: 6px solid var(--purple-badge); }
+#play-store-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 20px 40px -10px rgba(139, 92, 246, 0.25);
+    border-color: rgba(139, 92, 246, 0.4);
+}
+#play-store-card .btn { background: linear-gradient(135deg, var(--purple-badge) 0%, #7c3aed 100%); }
+
+#play-embed-card { border-left: 6px solid var(--green-badge); }
+#play-embed-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 20px 40px -10px rgba(16, 185, 129, 0.25);
+    border-color: rgba(16, 185, 129, 0.4);
+}
+#play-embed-card .btn { background: linear-gradient(135deg, var(--green-badge) 0%, #059669 100%); }
+
+/* --- [ร้านค้าของรางวัล Arcade Store] --- */
+.store-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 10px;
+}
+
+@media (min-width: 768px) {
+    .store-layout {
+        flex-direction: row;
+    }
+    .store-section {
+        flex: 1;
+    }
+}
+
+.store-section {
+    background: var(--card-bg);
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    border-radius: var(--border-radius-lg);
+    padding: 16px;
+    box-shadow: var(--shadow-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.store-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 2px dashed rgba(0, 0, 0, 0.05);
+}
+
+.store-section-header.pink-theme { border-bottom-color: var(--p1-border); }
+.store-section-header.blue-theme { border-bottom-color: var(--p2-border); }
+
+.store-section-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.store-coins {
+    font-size: 14px;
+    font-weight: 700;
+    background: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+}
+
+.store-items-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.store-item-card {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: var(--border-radius-md);
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.store-item-card.unlocked {
+    border-color: #cbd5e1;
+    background-color: #f8fafc;
+}
+
+.store-item-card.equipped {
+    border-color: #818cf8;
+    background-color: #f5f3ff;
+    box-shadow: 0 0 10px rgba(129, 140, 248, 0.15);
+}
+
+.store-item-icon {
+    font-size: 32px;
+}
+
+.store-item-name {
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.store-item-btn {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    background: #e2e8f0;
+    color: var(--text-main);
+    width: 100%;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.store-item-btn.buyable {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    box-shadow: 0 4px 8px rgba(245, 158, 11, 0.2);
+}
+
+.store-item-btn.buyable:active {
+    transform: scale(0.95);
+}
+
+.store-item-btn.equipped-btn {
+    background: #818cf8;
+    color: white;
+}
+
+/* --- [หน้าต่างฝังเกม Embedded Game Screen] --- */
+.embed-selector-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    background: var(--card-bg);
+    padding: 12px 18px;
+    border-radius: var(--border-radius-md);
+    border: 1.5px solid rgba(255, 255, 255, 0.8);
+}
+
+.embed-selector-container label {
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.embed-select {
+    flex-grow: 1;
+    padding: 10px 14px;
+    font-size: 14px;
+    border-radius: var(--border-radius-sm);
+    border: 2px solid #cbd5e1;
+    outline: none;
+    font-family: inherit;
+    background: white;
+    cursor: pointer;
+}
+
+.embed-iframe-wrapper {
+    background: white;
+    border: 2px solid rgba(255, 255, 255, 0.95);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-soft);
+    width: 100%;
+    height: calc(100vh - 260px);
+    min-height: 480px;
+    overflow: hidden;
+    position: relative;
+}
+
+.embed-iframe-wrapper iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.highlight-btn {
+    background: #fef9c3 !important;
+    border: 1.5px solid #f59e0b !important;
+    color: #b45309 !important;
+    font-weight: 700;
+    animation: pulseHighlight 1s infinite alternate;
+}
+
+@keyframes pulseHighlight {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.04); box-shadow: 0 0 12px rgba(245, 158, 11, 0.3); }
+}
+
+/* --- [เกมหนีผีหลอก Spooky Phonics Escape] --- */
+#spooky-screen {
+    background: linear-gradient(180deg, #0b071e 0%, #150933 100%);
+    color: #f3e8ff;
+}
+
+/* แถบจำลองการวิ่งหนีผี (Chase Track) */
+.spooky-track-container {
+    background: rgba(15, 11, 42, 0.6);
+    border: 2px solid #6366f1;
+    border-radius: var(--border-radius-md);
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+}
+
+.spooky-track-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 700;
+    color: #c084fc;
+    margin-bottom: 6px;
+}
+
+.spooky-track-road {
+    background: #090514;
+    border: 1.5px dashed #4b5563;
+    height: 48px;
+    border-radius: 24px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.spooky-marker {
+    position: absolute;
+    font-size: 26px;
+    transition: left 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    top: 50%;
+    transform: translateY(-50%);
+    user-select: none;
+}
+
+.ghost-marker {
+    filter: drop-shadow(0 0 8px #ef4444);
+    animation: spookyFloat 1.8s ease-in-out infinite;
+    z-index: 10;
+}
+
+.player-marker {
+    filter: drop-shadow(0 0 8px #60a5fa);
+    z-index: 9;
+}
+
+.exit-marker {
+    right: 16px;
+    font-size: 24px;
+    filter: drop-shadow(0 0 6px #10b981);
+}
+
+.spooky-track-status {
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    color: #cbd5e1;
+}
+
+/* โซนคำใบ้และตอบคำถาม */
+.spooky-arena {
+    background: rgba(17, 12, 44, 0.85);
+    border: 2px solid #a855f7;
+    border-radius: var(--border-radius-lg);
+    padding: 24px 20px;
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.25);
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+}
+
+.spooky-challenge-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+#spooky-hint-img {
+    width: 180px;
+    height: 180px;
+    background: #1e1b4b;
+    border: 3px solid #c084fc;
+    border-radius: var(--border-radius-md);
+    padding: 10px;
+    box-shadow: 0 0 15px rgba(192, 132, 252, 0.3);
+    object-fit: contain;
+}
+
+.spooky-hint-text-container {
+    text-align: center;
+}
+
+.spooky-threat-warning {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fca5a5;
+    background: #7f1d1d;
+    padding: 4px 16px;
+    border-radius: 20px;
+    border: 1.5px solid #ef4444;
+    display: inline-block;
+    margin-bottom: 8px;
+    animation: spookyBlink 1s infinite alternate;
+}
+
+#spooky-hint-th {
+    font-size: 16px;
+    font-weight: 600;
+    color: #e9d5ff;
+}
+
+#spooky-slots .letter-slot {
+    border-color: #7c3aed;
+    background: rgba(30, 27, 75, 0.6);
+    color: #f3e8ff;
+}
+
+#spooky-slots .letter-slot.filled {
+    border-color: #c084fc;
+    background: #4c1d95;
+    box-shadow: 0 0 10px rgba(192, 132, 252, 0.4);
+}
+
+#spooky-bank .letter-bubble {
+    border-color: #6d28d9;
+    background: #2e1065;
+    color: #e9d5ff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+#spooky-bank .letter-bubble:active {
+    background: #4c1d95;
+}
+
+#spooky-bank .letter-bubble.shake {
+    border-color: #f87171;
+    background: #7f1d1d;
+    color: #fca5a5;
+}
+
+/* หน้าต่างผีหลอก Boo Jump-scare Overlay */
+.spooky-boo-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    border-radius: var(--border-radius-lg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.spooky-boo-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+    animation: spookyScreenShake 0.4s ease;
+}
+
+.spooky-boo-content {
+    text-align: center;
+    color: white;
+    transform: scale(0.7);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.25);
+}
+
+.spooky-boo-overlay.active .spooky-boo-content {
+    transform: scale(1);
+}
+
+.spooky-boo-emoji {
+    font-size: 80px;
+    animation: spookyFloat 1s ease-in-out infinite;
+}
+
+.spooky-boo-content h2 {
+    font-size: 30px;
+    font-weight: 800;
+    color: #f87171;
+    margin: 12px 0 6px 0;
+    text-shadow: 0 0 10px rgba(248, 113, 113, 0.5);
+}
+
+.spooky-boo-content p {
+    font-size: 15px;
+    color: #cbd5e1;
+    margin-bottom: 24px;
+}
+
+/* Animations */
+@keyframes spookyFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-8px) rotate(3deg); }
+}
+
+@keyframes spookyBlink {
+    0% { opacity: 0.8; box-shadow: 0 0 5px rgba(239, 68, 68, 0.3); }
+    100% { opacity: 1; box-shadow: 0 0 15px rgba(239, 68, 68, 0.6); }
+}
+
+@keyframes spookyScreenShake {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    10% { transform: translate(-8px, -5px) rotate(-1deg); }
+    30% { transform: translate(6px, 8px) rotate(1deg); }
+    50% { transform: translate(-7px, 3px) rotate(-1deg); }
+    70% { transform: translate(8px, -6px) rotate(1deg); }
+    90% { transform: translate(-4px, 4px) rotate(0deg); }
+}
+
+.screen-shake-effect {
+    animation: spookyScreenShake 0.4s ease;
+}
+
+@media (max-width: 480px) {
+    #spooky-hint-img { width: 140px; height: 140px; }
+    .spooky-track-labels { font-size: 11px; }
+    .spooky-marker { font-size: 20px; }
+    .exit-marker { font-size: 18px; }
+}

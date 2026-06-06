@@ -33,6 +33,7 @@
                 </div>
                 
                 <button id="start-btn" class="btn btn-primary">เข้าสู่คลังเกมส์! 🎮</button>
+                <button id="reset-all-data-btn" class="btn btn-outline" style="margin-top: 14px; border-color: #ef4444; color: #ef4444; padding: 10px 20px; font-size: 13px; font-weight: 700;">🧹 ล้างข้อมูลสะสมทั้งหมด (Reset Coins & Unlocks)</button>
             </div>
             
             <div class="how-to-play">
@@ -50,7 +51,7 @@
             <header class="game-header">
                 <button id="arcade-back-btn" class="btn btn-icon">⚙️ ตั้งค่าใหม่</button>
                 <div class="game-title">Arcade Menu</div>
-                <div class="player-hello">สวัสดี <span class="p1-text" id="hello-p1">อันดา</span> & <span class="p2-text" id="hello-p2">อชิ</span></div>
+                <div class="player-hello">สวัสดี <span class="p1-text" id="hello-p1">อันดา</span> (🪙 <span id="p1-coins-display">0</span>) & <span class="p2-text" id="hello-p2">อชิ</span> (🪙 <span id="p2-coins-display">0</span>)</div>
             </header>
             
             <div class="arcade-title">
@@ -93,6 +94,33 @@
                     <h3>Phonics Speed Tap</h3>
                     <p>แข่งกันกดเลือกรูปอาชีพให้ไวที่สุด ใครกดถูกเร็วกว่าได้คะแนน หน้าจอแบ่งครึ่งนั่งตรงข้ามกัน</p>
                     <button class="btn btn-primary btn-sm">คลิกเล่นเกมบัสเซอร์</button>
+                </div>
+
+                <!-- การ์ดเกม 5: Reward Store -->
+                <div class="arcade-game-card" id="play-store-card">
+                    <div class="game-badge purple-badge">ร้านของขวัญ</div>
+                    <div class="game-card-icon">🪙🎁</div>
+                    <h3>Arcade Reward Store</h3>
+                    <p>ใช้เหรียญทองที่เล่นชนะเกมมาแลกเข็มกลัดอีโมจิเท่ๆ ติดชื่อ หรือสลับเสียงเอฟเฟกต์ฮาๆ</p>
+                    <button class="btn btn-primary btn-sm">เปิดร้านของรางวัล</button>
+                </div>
+
+                <!-- การ์ดเกม 6: Embedded Games -->
+                <div class="arcade-game-card" id="play-embed-card">
+                    <div class="game-badge green-badge">เกมส์ภายนอก</div>
+                    <div class="game-card-icon">🎮👾</div>
+                    <h3>World of Fun Games</h3>
+                    <p>เล่นเกมฝึก Phonics เสริมทักษะอาชีพของเว็บภายนอก (เช่น Wordwall) คล้ายเปิดแอปอื่นแต่ได้คะแนนด้วย</p>
+                    <button class="btn btn-primary btn-sm">เข้าดินแดนเกมหรรษา</button>
+                </div>
+
+                <!-- การ์ดเกม 7: Spooky Phonics Escape -->
+                <div class="arcade-game-card" id="play-spooky-card" style="background: linear-gradient(135deg, #2b1b54 0%, #170d30 100%); border-color: #a855f7;">
+                    <div class="game-badge orange-badge" style="background: #a855f7; color: white;">ลุ้นระทึก / ช่วยกัน</div>
+                    <div class="game-card-icon" style="filter: drop-shadow(0 0 10px #a855f7);">👻🏰</div>
+                    <h3 style="color: #f3e8ff;">Spooky Escape</h3>
+                    <p style="color: #d8b4fe;">ช่วยกันตอบคำศัพท์อาชีพสะกดคำเพื่อวิ่งหนีผีร้าย 👻 ออกจากปราสาทร้างให้ทันเวลา!</p>
+                    <button class="btn btn-primary btn-sm" style="background: #a855f7; border-color: #a855f7;">ท้าทายความมืด 🦇</button>
                 </div>
 
             </div>
@@ -290,6 +318,125 @@
             </div>
         </div>
 
+        <!-- Screen 7: ร้านของรางวัล (Reward Store Screen) -->
+        <div id="store-screen" class="screen">
+            <header class="game-header">
+                <button class="btn btn-icon btn-back-menu">🎮 คลังเกมส์</button>
+                <div class="game-title">Arcade Store</div>
+                <button class="btn btn-icon mute-toggle-btn">🔊 มีเสียง</button>
+            </header>
+
+            <div class="store-layout">
+                <!-- แผงร้านค้าฝั่งอันดา (P1) -->
+                <div class="store-section">
+                    <div class="store-section-header pink-theme">
+                        <h3>👧 ร้านของ <span class="display-p1-name-txt">น้องอันดา</span></h3>
+                        <div class="store-coins">🪙 <span id="store-p1-coins">0</span> เหรียญ</div>
+                    </div>
+                    <div class="store-items-grid" id="store-p1-items">
+                        <!-- รายการสินค้าของ P1 จะสร้างจาก JS -->
+                    </div>
+                </div>
+
+                <!-- แผงร้านค้าฝั่งอชิ (P2) -->
+                <div class="store-section">
+                    <div class="store-section-header blue-theme">
+                        <h3>👦 ร้านของ <span class="display-p2-name-txt">พี่อชิ</span></h3>
+                        <div class="store-coins">🪙 <span id="store-p2-coins">0</span> เหรียญ</div>
+                    </div>
+                    <div class="store-items-grid" id="store-p2-items">
+                        <!-- รายการสินค้าของ P2 จะสร้างจาก JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 8: ดินแดนเกมภายนอก (Embedded Games Screen) -->
+        <div id="embed-screen" class="screen">
+            <header class="game-header">
+                <button class="btn btn-icon btn-back-menu">🎮 คลังเกมส์</button>
+                <div class="game-title">World of Fun Games</div>
+                <button id="embed-claim-coins-btn" class="btn btn-icon highlight-btn">🪙 รับโบนัสเล่นเกม! (+20)</button>
+            </header>
+
+            <div class="embed-selector-container">
+                <label for="embed-game-select">🎮 เลือกเกมจาก Wordwall:</label>
+                <select id="embed-game-select" class="embed-select">
+                    <option value="https://wordwall.net/embed/782810ba57114a9c9e158a8601a1dcbc?themeId=22&ref=oembed">🎈 Jobs and Occupations - Vocabulary Balloon Pop</option>
+                    <option value="https://wordwall.net/embed/d56df885cfb0403c9791fc4b85ee643e?themeId=23&ref=oembed">🚒 Jobs and Occupations - Maze Chase Game</option>
+                    <option value="https://wordwall.net/embed/9298c3d91d234705b161ebceb8ca7ca2?themeId=58&ref=oembed">🛸 Phonics spelling - Oxford Phonics Quiz</option>
+                    <option value="https://wordwall.net/embed/3d02e0369ba0476ea3a06ef0d1a26d70?themeId=1&ref=oembed">🧑‍🍳 Jobs and Occupations - Hangman Game</option>
+                </select>
+            </div>
+
+            <div class="embed-iframe-wrapper">
+                <iframe id="embed-iframe" src="about:blank" allowfullscreen></iframe>
+            </div>
+        </div>
+
+        <!-- Screen 9: เกมหนีผี Spooky Phonics Escape Screen -->
+        <div id="spooky-screen" class="screen">
+            <header class="game-header" style="background: #1e1b4b; border-bottom: 2px solid #a855f7;">
+                <button class="btn btn-icon btn-back-menu">🎮 คลังเกมส์</button>
+                <div class="game-title" style="color: #e0e7ff; text-shadow: 0 0 10px #6366f1;">Spooky Escape 👻</div>
+                <button class="btn btn-icon mute-toggle-btn">🔊 มีเสียง</button>
+            </header>
+
+            <!-- แถบจำลองการวิ่งหนีผี (Chase Track) -->
+            <div class="spooky-track-container">
+                <div class="spooky-track-labels">
+                    <span>👻 ผีตามล่า</span>
+                    <span>🏃‍♂️🏃‍♀️ น้องๆ</span>
+                    <span>🚪 exit</span>
+                </div>
+                <div class="spooky-track-road">
+                    <!-- ไอคอนผีไล่ล่า -->
+                    <div id="spooky-ghost-marker" class="spooky-marker ghost-marker">👻</div>
+                    <!-- ไอคอนน้องๆ ผู้เล่น -->
+                    <div id="spooky-player-marker" class="spooky-marker player-marker">👧👦</div>
+                    <!-- ไอคอนประตูทางออก -->
+                    <div class="spooky-marker exit-marker">🚪</div>
+                </div>
+                <!-- แถบระยะทางบอกระยะห่างของน้องกับผี -->
+                <div class="spooky-track-status" id="spooky-distance-status">
+                    ผีอยู่ห่างออกไป 30 เมตร!
+                </div>
+            </div>
+
+            <!-- โซนคำใบ้และตอบคำถาม -->
+            <div class="spooky-arena">
+                <!-- กรอบคำใบ้อาชีพเรืองแสง -->
+                <div class="spooky-challenge-card">
+                    <img id="spooky-hint-img" src="images/doctor.png" alt="Job Hint">
+                    <div class="spooky-hint-text-container">
+                        <div class="spooky-threat-warning" id="spooky-threat-alert">⚠️ ผีกำลังจะขยับใน: <span id="spooky-timer-countdown">6</span> วินาที!</div>
+                        <h3 id="spooky-hint-th">ความหมาย: หมอ</h3>
+                    </div>
+                </div>
+
+                <!-- ช่องพิมพ์สะกดคำ (Spelling answers) -->
+                <div class="spooky-answer-container">
+                    <div class="letter-slots-container" id="spooky-slots">
+                        <!-- ช่องป้อน [ ] [ ] [ ] -->
+                    </div>
+                </div>
+
+                <!-- ปุ่มเลือกตัวอักษร -->
+                <div class="letter-bank-container" id="spooky-bank">
+                    <!-- ปุ่มอักษรสะกดคำ -->
+                </div>
+            </div>
+            
+            <!-- หน้าต่างฉุกเฉินตอนผีหลอก (Boo Jump-scare Overlay) -->
+            <div id="spooky-boo-overlay" class="spooky-boo-overlay">
+                <div class="spooky-boo-content">
+                    <div class="spooky-boo-emoji">👻</div>
+                    <h2>แฮ่! โดนจับได้แล้ว!</h2>
+                    <p>พยายามใหม่อีกครั้งนะเด็กๆ</p>
+                    <button id="spooky-retry-btn" class="btn btn-primary">ลองใหม่อีกรอบ 🔄</button>
+                </div>
+            </div>
+        </div>
 
     </div>
 

@@ -25,9 +25,37 @@ const occupations = [
 // สถานะหลักของระบบ (Main Application State)
 let gameState = {
     // ข้อมูลผู้เล่น
-    player1: { name: 'น้องอันดา', score: 0 },
-    player2: { name: 'พี่อชิ', score: 0 },
+    player1: { 
+        name: 'น้องอันดา', 
+        score: 0, 
+        coins: 10, // เริ่มให้คนละ 10 เหรียญเอาขวัญถุง
+        activeBadge: '', 
+        unlockedBadges: [], 
+        activeSound: 'standard', 
+        unlockedSounds: ['standard'] 
+    },
+    player2: { 
+        name: 'พี่อชิ', 
+        score: 0, 
+        coins: 10, 
+        activeBadge: '', 
+        unlockedBadges: [], 
+        activeSound: 'standard', 
+        unlockedSounds: ['standard'] 
+    },
     currentPlayer: 'X', // สำหรับ XO: 'X' หรือ 'O' / สำหรับ Memory: 'P1' หรือ 'P2'
+    
+    // คลังของรางวัลในอาเขต
+    storeItems: [
+        { id: 'badge_crown', type: 'badge', icon: '👑', name: 'มงกุฎราชา', cost: 15 },
+        { id: 'badge_rainbow', type: 'badge', icon: '🌈', name: 'สายรุ้งสดใส', cost: 15 },
+        { id: 'badge_fire', type: 'badge', icon: '🔥', name: 'ลูกไฟร้อนแรง', cost: 20 },
+        { id: 'badge_diamond', type: 'badge', icon: '💎', name: 'เพชรวิบวับ', cost: 25 },
+        { id: 'sound_duck', type: 'sound', icon: '🦆', name: 'เสียงเป็ดก๊าบๆ', cost: 30 },
+        { id: 'sound_cat', type: 'sound', icon: '🐱', name: 'เสียงแมวเหมียว', cost: 30 },
+        { id: 'sound_dino', type: 'sound', icon: '🦖', name: 'เสียงไดโนเสาร์', cost: 40 },
+        { id: 'sound_laser', type: 'sound', icon: '🚀', name: 'เสียงยานอวกาศ', cost: 40 }
+    ],
     
     // ตั้งค่าเสียง
     soundEnabled: true,
@@ -73,6 +101,7 @@ let gameState = {
     },
     
     // --- สถานะย่อยของเกมจับคู่ความเร็ว Speed Tap ---
+    // --- สถานะย่อยของเกมจับคู่ความเร็ว Speed Tap ---
     tap: {
         score1: 0,
         score2: 0,
@@ -81,6 +110,21 @@ let gameState = {
         p1Locked: false,
         p2Locked: false,
         active: false
+    },
+    
+    // --- สถานะย่อยของเกมหนีผีหลอก Spooky Phonics Escape ---
+    spooky: {
+        playerPos: 30,
+        ghostPos: 0,
+        active: false,
+        currentWordIndex: 0,
+        currentJob: null,
+        targetWord: '',
+        typedWord: [],
+        scrambledLetters: [],
+        threatCountdown: 6,
+        threatInterval: null,
+        success: false
     }
 };
 
@@ -98,7 +142,10 @@ const screens = {
     'xo-screen': document.getElementById('xo-screen'),
     'memory-screen': document.getElementById('memory-screen'),
     'spelling-screen': document.getElementById('spelling-screen'),
-    'tap-screen': document.getElementById('tap-screen')
+    'tap-screen': document.getElementById('tap-screen'),
+    'store-screen': document.getElementById('store-screen'),
+    'embed-screen': document.getElementById('embed-screen'),
+    'spooky-screen': document.getElementById('spooky-screen')
 };
 
 // ข้อมูลหน้ากรอกผู้เล่น
@@ -134,6 +181,91 @@ const tapSpeakBtn = document.getElementById('tap-speak-btn');
 const tapP1PanelContainer = document.getElementById('tap-p1-panel');
 const tapP2PanelContainer = document.getElementById('tap-p2-panel');
 
+// Store and Embed DOM elements
+const p1CoinsDisplay = document.getElementById('p1-coins-display');
+const p2CoinsDisplay = document.getElementById('p2-coins-display');
+const storeP1Coins = document.getElementById('store-p1-coins');
+const storeP2Coins = document.getElementById('store-p2-coins');
+const storeP1Items = document.getElementById('store-p1-items');
+const storeP2Items = document.getElementById('store-p2-items');
+const embedGameSelect = document.getElementById('embed-game-select');
+const embedIframe = document.getElementById('embed-iframe');
+const embedClaimCoinsBtn = document.getElementById('embed-claim-coins-btn');
+
+// Spooky Escape DOM elements
+const spookyGhostMarker = document.getElementById('spooky-ghost-marker');
+const spookyPlayerMarker = document.getElementById('spooky-player-marker');
+const spookyDistanceStatus = document.getElementById('spooky-distance-status');
+const spookyHintImg = document.getElementById('spooky-hint-img');
+const spookyHintTh = document.getElementById('spooky-hint-th');
+const spookyTimerCountdown = document.getElementById('spooky-timer-countdown');
+const spookySlots = document.getElementById('spooky-slots');
+const spookyBank = document.getElementById('spooky-bank');
+const spookyBooOverlay = document.getElementById('spooky-boo-overlay');
+const spookyRetryBtn = document.getElementById('spooky-retry-btn');
+
+// --- [ระบบบันทึกข้อมูลและโหลดข้อมูล LocalStorage (Persistence)] ---
+function saveGameState() {
+    try {
+        const dataToSave = {
+            player1: {
+                name: gameState.player1.name,
+                coins: gameState.player1.coins,
+                activeBadge: gameState.player1.activeBadge,
+                unlockedBadges: gameState.player1.unlockedBadges,
+                activeSound: gameState.player1.activeSound,
+                unlockedSounds: gameState.player1.unlockedSounds
+            },
+            player2: {
+                name: gameState.player2.name,
+                coins: gameState.player2.coins,
+                activeBadge: gameState.player2.activeBadge,
+                unlockedBadges: gameState.player2.unlockedBadges,
+                activeSound: gameState.player2.activeSound,
+                unlockedSounds: gameState.player2.unlockedSounds
+            }
+        };
+        localStorage.setItem('arcade_game_state', JSON.stringify(dataToSave));
+    } catch (e) {
+        console.error("Failed to save game state to LocalStorage: ", e);
+    }
+}
+
+function loadGameState() {
+    try {
+        const saved = localStorage.getItem('arcade_game_state');
+        if (saved) {
+            const data = JSON.parse(saved);
+            if (data.player1) {
+                gameState.player1.name = data.player1.name || 'น้องอันดา';
+                gameState.player1.coins = typeof data.player1.coins === 'number' ? data.player1.coins : 10;
+                gameState.player1.activeBadge = data.player1.activeBadge || '';
+                gameState.player1.unlockedBadges = Array.isArray(data.player1.unlockedBadges) ? data.player1.unlockedBadges : [];
+                gameState.player1.activeSound = data.player1.activeSound || 'standard';
+                gameState.player1.unlockedSounds = Array.isArray(data.player1.unlockedSounds) ? data.player1.unlockedSounds : ['standard'];
+            }
+            if (data.player2) {
+                gameState.player2.name = data.player2.name || 'พี่อชิ';
+                gameState.player2.coins = typeof data.player2.coins === 'number' ? data.player2.coins : 10;
+                gameState.player2.activeBadge = data.player2.activeBadge || '';
+                gameState.player2.unlockedBadges = Array.isArray(data.player2.unlockedBadges) ? data.player2.unlockedBadges : [];
+                gameState.player2.activeSound = data.player2.activeSound || 'standard';
+                gameState.player2.unlockedSounds = Array.isArray(data.player2.unlockedSounds) ? data.player2.unlockedSounds : ['standard'];
+            }
+            
+            // อัปเดตช่องกรอกชื่อในหน้า Setup
+            if (p1NameInput) p1NameInput.value = gameState.player1.name;
+            if (p2NameInput) p2NameInput.value = gameState.player2.name;
+            
+            // อัปเดตการแสดงผลชื่อและเหรียญ
+            updateDisplayNames();
+            updateCoinsUI();
+        }
+    } catch (e) {
+        console.error("Failed to load game state from LocalStorage: ", e);
+    }
+}
+
 // --- [ระบบสลับหน้าจอ - Router] ---
 function showScreen(screenId) {
     // ซ่อนทุกหน้าจอ
@@ -149,6 +281,12 @@ function showScreen(screenId) {
     if (screenId !== 'memory-screen' && gameState.memory.timerInterval) {
         clearInterval(gameState.memory.timerInterval);
         gameState.memory.timerInterval = null;
+    }
+    
+    // เคลียร์ค่าตัวจับเวลาของ Spooky Escape หากย้ายหน้าจอ
+    if (screenId !== 'spooky-screen' && gameState.spooky.threatInterval) {
+        clearInterval(gameState.spooky.threatInterval);
+        gameState.spooky.threatInterval = null;
     }
 }
 
@@ -186,9 +324,104 @@ function playTone(freq, type, duration, volume = 0.15) {
     }
 }
 
-function playSound(type) {
+function playCustomSound(packId, type) {
+    initAudio();
+    const ctx = gameState.audioCtx;
+    if (!ctx) return;
+
+    if (packId === 'sound_duck') {
+        if (type === 'correct') {
+            playTone(850, 'triangle', 0.08, 0.12);
+            setTimeout(() => playTone(880, 'triangle', 0.12, 0.12), 70);
+        } else if (type === 'wrong') {
+            playTone(280, 'sawtooth', 0.3, 0.15);
+        } else if (type === 'win') {
+            playTone(700, 'triangle', 0.1, 0.1);
+            setTimeout(() => playTone(850, 'triangle', 0.1, 0.1), 100);
+            setTimeout(() => playTone(1000, 'triangle', 0.25, 0.1), 200);
+        } else {
+            playTone(600, 'triangle', 0.1, 0.12);
+        }
+    } else if (packId === 'sound_cat') {
+        if (type === 'correct') {
+            try {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(600, ctx.currentTime);
+                osc.frequency.quadraticRampToValueAtTime(1100, ctx.currentTime + 0.25);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.25);
+            } catch (e){}
+        } else if (type === 'wrong') {
+            playTone(130, 'sawtooth', 0.4, 0.15);
+        } else if (type === 'win') {
+            playTone(900, 'sine', 0.15, 0.1);
+            setTimeout(() => playTone(1100, 'sine', 0.25, 0.1), 120);
+        } else {
+            playTone(700, 'sine', 0.15, 0.1);
+        }
+    } else if (packId === 'sound_dino') {
+        if (type === 'correct') {
+            playTone(180, 'sawtooth', 0.3, 0.18);
+            setTimeout(() => playTone(250, 'sawtooth', 0.2, 0.15), 100);
+        } else if (type === 'wrong') {
+            playTone(90, 'sawtooth', 0.5, 0.2);
+        } else if (type === 'win') {
+            playTone(150, 'sawtooth', 0.2);
+            setTimeout(() => playTone(200, 'sawtooth', 0.2), 150);
+            setTimeout(() => playTone(300, 'sawtooth', 0.4), 300);
+        } else {
+            playTone(140, 'triangle', 0.15);
+        }
+    } else if (packId === 'sound_laser') {
+        if (type === 'correct' || type === 'win') {
+            try {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(1500, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.3);
+            } catch(e){}
+        } else if (type === 'wrong') {
+            playTone(110, 'sawtooth', 0.3, 0.15);
+        } else {
+            playTone(900, 'sine', 0.08, 0.1);
+        }
+    }
+}
+
+function playSound(type, playerNum) {
     if (!gameState.soundEnabled) return;
     initAudio();
+
+    // ดึงเสียงเสริมประจำตัวผู้เล่น
+    let activeSoundPack = 'standard';
+    if (playerNum === 1) {
+        activeSoundPack = gameState.player1.activeSound;
+    } else if (playerNum === 2) {
+        activeSoundPack = gameState.player2.activeSound;
+    } else if (gameState.currentPlayer === 'X' || gameState.currentPlayer === 'P1') {
+        activeSoundPack = gameState.player1.activeSound;
+    } else if (gameState.currentPlayer === 'O' || gameState.currentPlayer === 'P2') {
+        activeSoundPack = gameState.player2.activeSound;
+    }
+
+    if (activeSoundPack && activeSoundPack !== 'standard') {
+        playCustomSound(activeSoundPack, type);
+        return;
+    }
+
     if (type === 'click') {
         playTone(600, 'sine', 0.1);
     } else if (type === 'flip') {
@@ -399,11 +632,13 @@ function checkXOResult() {
         if (winnerMark === 'X') {
             gameState.xo.score1++;
             xoP1ScoreEl.textContent = gameState.xo.score1;
-            winnerName = gameState.player1.name;
+            winnerName = getPlayerDisplayName(1);
+            addCoins(1, 10);
         } else {
             gameState.xo.score2++;
             xoP2ScoreEl.textContent = gameState.xo.score2;
-            winnerName = gameState.player2.name;
+            winnerName = getPlayerDisplayName(2);
+            addCoins(2, 10);
         }
         
         // สุ่มหยิบประโยคพูดของคำในชุดชนะมาทบทวนสะกดภาษาอังกฤษ
@@ -423,6 +658,8 @@ function checkXOResult() {
     if (!gameState.xo.board.includes(null)) {
         gameState.xo.active = false;
         playSound('draw');
+        addCoins(1, 5);
+        addCoins(2, 5);
         setTimeout(() => {
             showCelebrationModal("🤝 เล่นได้ดีมาก! เสมอกันแล้ว 🤝", "Try another match!", 'xo');
         }, 500);
@@ -626,9 +863,11 @@ function checkForMemoryMatch() {
                 if (gameState.currentPlayer === 'P1') {
                     gameState.memory.score1++;
                     memP1ScoreEl.textContent = gameState.memory.score1;
+                    addCoins(1, 3);
                 } else {
                     gameState.memory.score2++;
                     memP2ScoreEl.textContent = gameState.memory.score2;
+                    addCoins(2, 3);
                 }
             }
             
@@ -681,14 +920,19 @@ function handleMemoryEndGame() {
             let phrase = "Great teamwork in matching all jobs!";
             
             if (p1 > p2) {
-                title = `🏆 ${gameState.player1.name} ชนะการ์ดจับคู่! (${p1} คะแนน) 🏆`;
+                title = `🏆 ${getPlayerDisplayName(1)} ชนะการ์ดจับคู่! (${p1} คะแนน) 🏆`;
+                addCoins(1, 10);
             } else if (p2 > p1) {
-                title = `🏆 ${gameState.player2.name} ชนะการ์ดจับคู่! (${p2} คะแนน) 🏆`;
+                title = `🏆 ${getPlayerDisplayName(2)} ชนะการ์ดจับคู่! (${p2} คะแนน) 🏆`;
+                addCoins(2, 10);
             } else {
                 title = "🤝 เสมอกัน! คว้าจับคู่ไปคนละ 3 คะแนน 🤝";
+                addCoins(1, 5);
+                addCoins(2, 5);
             }
             showCelebrationModal(title, phrase, 'memory');
         } else {
+            addCoins(1, 15);
             showCelebrationModal(
                 "🎉 ยินดีด้วย! จับคู่ครบทั้งหมด 6 อาชีพ 🎉", 
                 `ใช้เวลาสะสม ${gameState.memory.timer} วินาที (คลิกพลิกไพ่ ${gameState.memory.moves} ครั้ง)`, 
@@ -820,6 +1064,7 @@ function handleLetterClick(letter, btn) {
 function handleSpellingSuccess() {
     gameState.spelling.score += 10;
     spellScoreEl.textContent = gameState.spelling.score;
+    addCoins(1, 5);
     
     playSound('win');
     
@@ -940,19 +1185,23 @@ function handleTapChoice(playerNum, choice, btnEl) {
             tapP1ScoreEl.textContent = gameState.tap.score1;
             tapP1StatusEl.textContent = 'เก่งมาก! +1';
             tapP1StatusEl.style.color = '#10b981';
+            addCoins(1, 3);
             speakEnglish(`${gameState.player1.name} correct! ${gameState.tap.targetJob.sentence}`);
         } else {
             gameState.tap.score2++;
             tapP2ScoreEl.textContent = gameState.tap.score2;
             tapP2StatusEl.textContent = 'เก่งมาก! +1';
             tapP2StatusEl.style.color = '#10b981';
+            addCoins(2, 3);
             speakEnglish(`${gameState.player2.name} correct! ${gameState.tap.targetJob.sentence}`);
         }
 
         // เช็คคะแนนรวมว่าใครถึง 5 ก่อน
         setTimeout(() => {
             if (gameState.tap.score1 >= 5 || gameState.tap.score2 >= 5) {
-                const winnerName = gameState.tap.score1 >= 5 ? gameState.player1.name : gameState.player2.name;
+                const winnerName = gameState.tap.score1 >= 5 ? getPlayerDisplayName(1) : getPlayerDisplayName(2);
+                const winnerNum = gameState.tap.score1 >= 5 ? 1 : 2;
+                addCoins(winnerNum, 10);
                 playSound('win');
                 showCelebrationModal(`🏆 ${winnerName} ชนะศึกบัสเซอร์ความเร็ว! 🏆`, `คะแนนรวม ${gameState.tap.score1} ต่อ ${gameState.tap.score2}`, 'tap');
             } else {
@@ -998,6 +1247,167 @@ function handleTapChoice(playerNum, choice, btnEl) {
     }
 }
 
+// --- [ ระบบการสะสมเหรียญ & ร้านค้ารางวัล (Coins & Store Engine) ] ---
+
+function getPlayerDisplayName(playerNum) {
+    if (playerNum === 1) {
+        const badge = gameState.player1.activeBadge ? ' ' + gameState.player1.activeBadge : '';
+        return gameState.player1.name + badge;
+    } else {
+        const badge = gameState.player2.activeBadge ? ' ' + gameState.player2.activeBadge : '';
+        return gameState.player2.name + badge;
+    }
+}
+
+function updateDisplayNames() {
+    document.querySelectorAll('.display-p1-name-txt').forEach(el => {
+        el.textContent = getPlayerDisplayName(1);
+    });
+    document.querySelectorAll('.display-p2-name-txt').forEach(el => {
+        el.textContent = getPlayerDisplayName(2);
+    });
+}
+
+function updateCoinsUI() {
+    if (p1CoinsDisplay) p1CoinsDisplay.textContent = gameState.player1.coins;
+    if (p2CoinsDisplay) p2CoinsDisplay.textContent = gameState.player2.coins;
+    if (storeP1Coins) storeP1Coins.textContent = gameState.player1.coins;
+    if (storeP2Coins) storeP2Coins.textContent = gameState.player2.coins;
+}
+
+function addCoins(playerNum, amount) {
+    initAudio();
+    if (playerNum === 1) {
+        gameState.player1.coins += amount;
+    } else {
+        gameState.player2.coins += amount;
+    }
+    updateCoinsUI();
+    saveGameState();
+    // เล่นเสียงเหรียญ
+    playTone(987.77, 'sine', 0.08, 0.08); // B5
+    setTimeout(() => playTone(1318.51, 'sine', 0.2, 0.08), 80); // E6
+}
+
+function initStore() {
+    renderStoreForPlayer(1, storeP1Items);
+    renderStoreForPlayer(2, storeP2Items);
+    updateCoinsUI();
+}
+
+function renderStoreForPlayer(playerNum, containerEl) {
+    if (!containerEl) return;
+    containerEl.innerHTML = '';
+    
+    const player = playerNum === 1 ? gameState.player1 : gameState.player2;
+    
+    gameState.storeItems.forEach(item => {
+        const itemCard = document.createElement('div');
+        itemCard.classList.add('store-item-card');
+        
+        const isUnlocked = item.type === 'badge' 
+            ? player.unlockedBadges.includes(item.icon)
+            : player.unlockedSounds.includes(item.id);
+            
+        const isEquipped = item.type === 'badge'
+            ? player.activeBadge === item.icon
+            : player.activeSound === item.id;
+            
+        if (isEquipped) {
+            itemCard.classList.add('equipped');
+        } else if (isUnlocked) {
+            itemCard.classList.add('unlocked');
+        }
+        
+        const iconEl = document.createElement('div');
+        iconEl.classList.add('store-item-icon');
+        iconEl.textContent = item.icon;
+        
+        const nameEl = document.createElement('div');
+        nameEl.classList.add('store-item-name');
+        nameEl.textContent = item.name;
+        
+        const actionBtn = document.createElement('button');
+        actionBtn.classList.add('store-item-btn');
+        
+        if (isEquipped) {
+            actionBtn.classList.add('equipped-btn');
+            actionBtn.textContent = 'ใช้งานอยู่';
+        } else if (isUnlocked) {
+            actionBtn.textContent = 'สวมใส่';
+            actionBtn.addEventListener('click', () => {
+                equipStoreItem(playerNum, item);
+            });
+        } else {
+            actionBtn.classList.add('buyable');
+            actionBtn.textContent = `🪙 ${item.cost}`;
+            actionBtn.addEventListener('click', () => {
+                buyStoreItem(playerNum, item);
+            });
+        }
+        
+        itemCard.appendChild(iconEl);
+        itemCard.appendChild(nameEl);
+        itemCard.appendChild(actionBtn);
+        
+        containerEl.appendChild(itemCard);
+    });
+}
+
+function buyStoreItem(playerNum, item) {
+    initAudio();
+    const player = playerNum === 1 ? gameState.player1 : gameState.player2;
+    
+    if (player.coins >= item.cost) {
+        player.coins -= item.cost;
+        
+        if (item.type === 'badge') {
+            player.unlockedBadges.push(item.icon);
+            player.activeBadge = item.icon;
+        } else {
+            player.unlockedSounds.push(item.id);
+            player.activeSound = item.id;
+        }
+        
+        playSound('correct');
+        initStore();
+        updateDisplayNames();
+        saveGameState();
+    } else {
+        playSound('wrong');
+        alert('เหรียญทองไม่พอครับ! ไปเล่นเกมสะสมเหรียญเพิ่มก่อนนะ');
+    }
+}
+
+function equipStoreItem(playerNum, item) {
+    const player = playerNum === 1 ? gameState.player1 : gameState.player2;
+    
+    if (item.type === 'badge') {
+        player.activeBadge = player.activeBadge === item.icon ? '' : item.icon;
+    } else {
+        player.activeSound = player.activeSound === item.id ? 'standard' : item.id;
+    }
+    
+    playSound('click');
+    initStore();
+    updateDisplayNames();
+    saveGameState();
+}
+
+// --- [ ระบบเชื่อมต่อเกมภายนอก (Embedded Games Loader) ] ---
+
+let embedClaimedThisSession = false;
+
+function initEmbedScreen() {
+    embedClaimedThisSession = false;
+    embedClaimCoinsBtn.classList.add('highlight-btn');
+    embedClaimCoinsBtn.textContent = '🪙 รับโบนัสเล่นเกม! (+20)';
+    
+    // โหลดเกมแรกในตัวเลือกขึ้น iframe
+    const selectedUrl = embedGameSelect.value;
+    embedIframe.src = selectedUrl;
+}
+
 // --- [ หน้าต่างประกาศชัยชนะ Winner Modal Controller ] ---
 
 let currentWinModalGame = 'xo';
@@ -1028,6 +1438,8 @@ modalNextBtn.addEventListener('click', () => {
         initSpelling();
     } else if (currentWinModalGame === 'tap') {
         initSpeedTap();
+    } else if (currentWinModalGame === 'spooky') {
+        initSpookyEscape();
     }
 });
 
@@ -1048,8 +1460,9 @@ startBtn.addEventListener('click', () => {
     gameState.player2.name = p2 !== "" ? p2 : "พี่อชิ";
     
     // ทักทายในเมนูหลักอาเขต
-    document.getElementById('hello-p1').textContent = gameState.player1.name;
-    document.getElementById('hello-p2').textContent = gameState.player2.name;
+    updateDisplayNames();
+    updateCoinsUI();
+    saveGameState();
     
     initAudio();
     playSound('click');
@@ -1067,6 +1480,7 @@ document.getElementById('play-xo-card').addEventListener('click', () => {
     initAudio();
     playSound('click');
     showScreen('xo-screen');
+    updateDisplayNames();
     initXO();
 });
 
@@ -1074,6 +1488,7 @@ document.getElementById('play-memory-card').addEventListener('click', () => {
     initAudio();
     playSound('click');
     showScreen('memory-screen');
+    updateDisplayNames();
     initMemory();
 });
 
@@ -1081,6 +1496,7 @@ document.getElementById('play-spelling-card').addEventListener('click', () => {
     initAudio();
     playSound('click');
     showScreen('spelling-screen');
+    updateDisplayNames();
     gameState.spelling.currentWordIndex = 0;
     gameState.spelling.score = 0;
     initSpelling();
@@ -1090,7 +1506,32 @@ document.getElementById('play-tap-card').addEventListener('click', () => {
     initAudio();
     playSound('click');
     showScreen('tap-screen');
+    updateDisplayNames();
     initSpeedTap();
+});
+
+document.getElementById('play-store-card').addEventListener('click', () => {
+    initAudio();
+    playSound('click');
+    showScreen('store-screen');
+    updateDisplayNames();
+    initStore();
+});
+
+document.getElementById('play-embed-card').addEventListener('click', () => {
+    initAudio();
+    playSound('click');
+    showScreen('embed-screen');
+    updateDisplayNames();
+    initEmbedScreen();
+});
+
+document.getElementById('play-spooky-card').addEventListener('click', () => {
+    initAudio();
+    playSound('click');
+    showScreen('spooky-screen');
+    updateDisplayNames();
+    initSpookyEscape();
 });
 
 // ปุ่มกดกากบาทสีมุมซ้ายบนเพื่อย้อนกลับเมนูหลักอาเขตคลังเกมส์
@@ -1098,7 +1539,33 @@ document.querySelectorAll('.btn-back-menu').forEach(btn => {
     btn.addEventListener('click', () => {
         playSound('click');
         showScreen('arcade-screen');
+        // รีเซ็ต iframe เมื่อย้ายหน้าออก
+        embedIframe.src = "about:blank";
     });
+});
+
+// จัดการเลือกเกมภายนอก
+embedGameSelect.addEventListener('change', () => {
+    playSound('click');
+    embedIframe.src = embedGameSelect.value;
+});
+
+// จัดการรับเหรียญเล่นเกมภายนอก
+embedClaimCoinsBtn.addEventListener('click', () => {
+    if (embedClaimedThisSession) {
+        playSound('wrong');
+        alert('คุณพ่อรับโบนัสของรอบนี้ไปแล้วครับ! ลองสลับเลือกด่านเกมอื่นแล้วกลับมากดใหม่นะ');
+        return;
+    }
+    
+    embedClaimedThisSession = true;
+    embedClaimCoinsBtn.classList.remove('highlight-btn');
+    embedClaimCoinsBtn.textContent = '🪙 รับเหรียญสำเร็จ! (+20)';
+    
+    // มอบเหรียญ 20 เหรียญให้ผู้เล่นทั้งสองคนแบ่งกันคนละ 10 เหรียญ
+    addCoins(1, 10);
+    addCoins(2, 10);
+    playSound('correct');
 });
 
 // สลับเปิด/ปิดปิดเสียงทับทุกหน้าจอ
@@ -1116,6 +1583,37 @@ document.querySelectorAll('.mute-toggle-btn').forEach(btn => {
             }
         });
     });
+});
+
+// ควบคุมปุ่มล้างข้อมูลสะสมทั้งหมด
+document.getElementById('reset-all-data-btn').addEventListener('click', () => {
+    if (confirm('คุณแน่ใจหรือไม่ที่จะล้างข้อมูลเหรียญทองและของรางวัลที่ปลดล็อกทั้งหมด?')) {
+        localStorage.removeItem('arcade_game_state');
+        
+        // Reset gameState
+        gameState.player1.name = 'น้องอันดา';
+        gameState.player1.coins = 10;
+        gameState.player1.activeBadge = '';
+        gameState.player1.unlockedBadges = [];
+        gameState.player1.activeSound = 'standard';
+        gameState.player1.unlockedSounds = ['standard'];
+        
+        gameState.player2.name = 'พี่อชิ';
+        gameState.player2.coins = 10;
+        gameState.player2.activeBadge = '';
+        gameState.player2.unlockedBadges = [];
+        gameState.player2.activeSound = 'standard';
+        gameState.player2.unlockedSounds = ['standard'];
+        
+        if (p1NameInput) p1NameInput.value = gameState.player1.name;
+        if (p2NameInput) p2NameInput.value = gameState.player2.name;
+        
+        updateDisplayNames();
+        updateCoinsUI();
+        initAudio();
+        playSound('click');
+        alert('ล้างข้อมูลสะสมเรียบร้อยแล้วครับ!');
+    }
 });
 
 // ควบคุมปุ่มเริ่มใหม่ของเกม XO
@@ -1242,6 +1740,12 @@ function stopConfetti() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
+// Bind Spooky Escape Retry button
+spookyRetryBtn.addEventListener('click', () => {
+    playSound('click');
+    initSpookyEscape();
+});
+
 function animateConfetti() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     particles.forEach(p => {
@@ -1250,3 +1754,307 @@ function animateConfetti() {
     });
     animationFrameId = requestAnimationFrame(animateConfetti);
 }
+
+// --- [ 👻 เกมที่ 5: Spooky Phonics Escape ] ---
+
+function initSpookyEscape() {
+    hideWinModal();
+    spookyBooOverlay.classList.remove('active');
+    
+    // รีเซ็ตตำแหน่งระยะทาง
+    gameState.spooky.playerPos = 30;
+    gameState.spooky.ghostPos = 0;
+    gameState.spooky.active = true;
+    gameState.spooky.success = false;
+    gameState.spooky.currentWordIndex = Math.floor(Math.random() * occupations.length); // สุ่มจับขึ้นมาคำแรก
+    
+    updateSpookyTrackUI();
+    
+    // ตั้งค่าคำถามแรก
+    nextSpookyWord();
+    
+    // เริ่มระบบเตือนและขยับตัวผี
+    startSpookyThreatTimer();
+}
+
+function updateSpookyTrackUI() {
+    // อัปเดตตำแหน่งไอคอนผีและผู้เล่นทาง CSS Left
+    spookyGhostMarker.style.left = `${gameState.spooky.ghostPos}%`;
+    spookyPlayerMarker.style.left = `${gameState.spooky.playerPos}%`;
+    
+    // คำนวณระยะห่าง
+    const distance = Math.max(0, Math.floor((gameState.spooky.playerPos - gameState.spooky.ghostPos)));
+    spookyDistanceStatus.textContent = `ผีอยู่ห่างจากน้องๆ: ${distance} เมตร! (ทางออกอยู่ที่ 100 เมตร)`;
+}
+
+function nextSpookyWord() {
+    gameState.spooky.currentJob = occupations[gameState.spooky.currentWordIndex];
+    gameState.spooky.targetWord = gameState.spooky.currentJob.nameEn;
+    gameState.spooky.typedWord = [];
+    
+    spookyHintImg.src = `images/${gameState.spooky.currentJob.id}.png`;
+    spookyHintImg.alt = gameState.spooky.targetWord;
+    spookyHintTh.textContent = `ความหมาย: ${gameState.spooky.currentJob.nameTh}`;
+    
+    speakEnglish(gameState.spooky.targetWord);
+    
+    // วาดช่องคำตอบ
+    spookySlots.innerHTML = '';
+    for (let i = 0; i < gameState.spooky.targetWord.length; i++) {
+        const char = gameState.spooky.targetWord[i];
+        const slot = document.createElement('div');
+        if (char === ' ') {
+            slot.style.width = '20px';
+            slot.style.border = 'none';
+            slot.style.background = 'transparent';
+        } else {
+            slot.classList.add('letter-slot');
+        }
+        spookySlots.appendChild(slot);
+    }
+    
+    // วาดธนาคารตัวอักษรปนกัน
+    let letterList = gameState.spooky.targetWord.replace(/\s+/g, '').split('');
+    letterList = shuffleArray(letterList);
+    
+    spookyBank.innerHTML = '';
+    letterList.forEach((letter) => {
+        const btn = document.createElement('div');
+        btn.classList.add('letter-bubble');
+        btn.textContent = letter;
+        btn.addEventListener('click', () => handleSpookyLetterClick(letter, btn));
+        spookyBank.appendChild(btn);
+    });
+}
+
+function handleSpookyLetterClick(letter, btn) {
+    if (!gameState.spooky.active || gameState.spooky.success) return;
+    initAudio();
+    
+    const target = gameState.spooky.targetWord;
+    const currentIndex = gameState.spooky.typedWord.length;
+    let expectedLetter = target[currentIndex];
+    
+    if (expectedLetter === ' ') {
+        gameState.spooky.typedWord.push(' ');
+        expectedLetter = target[currentIndex + 1];
+    }
+    
+    if (letter.toLowerCase() === expectedLetter.toLowerCase()) {
+        // ถูกต้อง!
+        gameState.spooky.typedWord.push(letter);
+        
+        const activeIndex = gameState.spooky.typedWord.length - 1;
+        const targetSlot = spookySlots.children[activeIndex];
+        targetSlot.textContent = letter;
+        targetSlot.classList.add('filled');
+        
+        btn.classList.add('hidden');
+        playSound('correct');
+        speakEnglish(letter);
+        
+        if (gameState.spooky.typedWord.length === target.length) {
+            handleSpookyWordSuccess();
+        }
+    } else {
+        // ผิดตัวอักษร! ขยับผีใกล้เข้ามาทันทีเป็นโทษ!
+        btn.classList.add('shake');
+        playSound('wrong');
+        speakEnglish(letter);
+        
+        // ผีพุ่งกระโจนเข้าหา
+        gameState.spooky.ghostPos = Math.min(gameState.spooky.playerPos, gameState.spooky.ghostPos + 6);
+        updateSpookyTrackUI();
+        triggerSpookyScreenShake();
+        
+        setTimeout(() => {
+            btn.classList.remove('shake');
+        }, 400);
+        
+        checkSpookyStatus();
+    }
+}
+
+function triggerSpookyScreenShake() {
+    const screenEl = document.getElementById('spooky-screen');
+    if (screenEl) {
+        screenEl.classList.add('screen-shake-effect');
+        setTimeout(() => {
+            screenEl.classList.remove('screen-shake-effect');
+        }, 400);
+    }
+}
+
+function handleSpookyWordSuccess() {
+    gameState.spooky.success = true;
+    
+    // ผู้เล่นวิ่งหนีห่างออกไป! (+15 เมตร)
+    gameState.spooky.playerPos = Math.min(100, gameState.spooky.playerPos + 15);
+    updateSpookyTrackUI();
+    
+    playSound('win');
+    startConfetti();
+    
+    const job = gameState.spooky.currentJob;
+    setTimeout(() => {
+        speakEnglish(`${job.nameEn}. ${job.sentence}`);
+    }, 1000);
+    
+    // สุ่มด่านถัดไปหลังจากพักเหนื่อย 2 วินาที
+    setTimeout(() => {
+        if (!gameState.spooky.active) return;
+        stopConfetti();
+        
+        if (gameState.spooky.playerPos >= 100) {
+            handleSpookyEscapeWin();
+        } else {
+            gameState.spooky.success = false;
+            // สุ่มอาชีพถัดไป
+            gameState.spooky.currentWordIndex = Math.floor(Math.random() * occupations.length);
+            nextSpookyWord();
+        }
+    }, 2200);
+}
+
+function startSpookyThreatTimer() {
+    if (gameState.spooky.threatInterval) {
+        clearInterval(gameState.spooky.threatInterval);
+    }
+    
+    gameState.spooky.threatCountdown = 6;
+    spookyTimerCountdown.textContent = gameState.spooky.threatCountdown;
+    
+    gameState.spooky.threatInterval = setInterval(() => {
+        if (!gameState.spooky.active || gameState.spooky.success) return;
+        
+        gameState.spooky.threatCountdown--;
+        spookyTimerCountdown.textContent = gameState.spooky.threatCountdown;
+        
+        if (gameState.spooky.threatCountdown <= 0) {
+            // ผีคืบคลานเข้าหา 1 ก้าว (+8 เมตร)
+            gameState.spooky.ghostPos = Math.min(gameState.spooky.playerPos, gameState.spooky.ghostPos + 8);
+            updateSpookyTrackUI();
+            
+            // เล่นเสียงขยับตัวผีหลอก
+            playSpookySound('howl');
+            triggerSpookyScreenShake();
+            
+            // รีเซ็ตเวลานับถอยหลัง
+            gameState.spooky.threatCountdown = 6;
+            spookyTimerCountdown.textContent = gameState.spooky.threatCountdown;
+            
+            checkSpookyStatus();
+        }
+    }, 1000);
+}
+
+function checkSpookyStatus() {
+    // ถ้าผีวิ่งกวดตามทันน้อง
+    if (gameState.spooky.ghostPos >= gameState.spooky.playerPos) {
+        handleSpookyCaught();
+    }
+}
+
+function handleSpookyCaught() {
+    gameState.spooky.active = false;
+    if (gameState.spooky.threatInterval) {
+        clearInterval(gameState.spooky.threatInterval);
+    }
+    
+    // เสียงเสียงแฮ่ผีขำๆ และแสดงม่านหน้ากาก Boo!
+    playSpookySound('boo');
+    setTimeout(() => {
+        playSpookySound('laugh');
+    }, 250);
+    
+    spookyBooOverlay.classList.add('active');
+    
+    // ปลอบใจ มอบ 5 เหรียญ (คนละ 2-3 เหรียญ)
+    addCoins(1, 2);
+    addCoins(2, 3);
+}
+
+function handleSpookyEscapeWin() {
+    gameState.spooky.active = false;
+    if (gameState.spooky.threatInterval) {
+        clearInterval(gameState.spooky.threatInterval);
+    }
+    
+    playSound('win');
+    // ชนะหลบหนีได้ +20 เหรียญทองแบ่งคนละ 10
+    addCoins(1, 10);
+    addCoins(2, 10);
+    
+    showCelebrationModal(
+        "🎉 ยินดีด้วย! หนีออกจากปราสาทร้างสำเร็จ! 🎉",
+        "น้องอันดาและพี่อชิเก่งมากเลย ช่วยกันสะกดหนีผีร้ายทันเวลา!",
+        "spooky"
+    );
+}
+
+function playSpookySound(type) {
+    if (!gameState.soundEnabled) return;
+    initAudio();
+    const ctx = gameState.audioCtx;
+    if (!ctx) return;
+    
+    try {
+        if (type === 'howl') {
+            // เสียงลมพัดหวีดหวิว / เลื่อนความถี่
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(120, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(350, ctx.currentTime + 0.6);
+            osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 1.2);
+            
+            gain.gain.setValueAtTime(0.001, ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.3);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+            
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 1.2);
+        } else if (type === 'laugh') {
+            // เสียงผีหัวเราะ คีย์ต่ำๆ คลื่น Sawtooth
+            const now = ctx.currentTime;
+            [220, 190, 160, 130].forEach((freq, idx) => {
+                const playTime = now + (idx * 0.15);
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(freq, playTime);
+                gain.gain.setValueAtTime(0.1, playTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, playTime + 0.25);
+                
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(playTime);
+                osc.stop(playTime + 0.25);
+            });
+        } else if (type === 'boo') {
+            // เสียงกระโชกสะดุ้งขำๆ
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(280, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.6);
+            
+            gain.gain.setValueAtTime(0.25, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+            
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.6);
+        }
+    } catch(e) {
+        console.error("Spooky sound error: ", e);
+    }
+}
+
+// โหลดข้อมูลจาก LocalStorage ตอนเริ่มต้นรันสคริปต์
+loadGameState();
