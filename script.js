@@ -32,7 +32,8 @@ let gameState = {
         activeBadge: '', 
         unlockedBadges: [], 
         activeSound: 'standard', 
-        unlockedSounds: ['standard'] 
+        unlockedSounds: ['standard'],
+        inventory: { fog: 0, flip: 0, freeze: 0 }
     },
     player2: { 
         name: 'พี่อชิ', 
@@ -41,7 +42,8 @@ let gameState = {
         activeBadge: '', 
         unlockedBadges: [], 
         activeSound: 'standard', 
-        unlockedSounds: ['standard'] 
+        unlockedSounds: ['standard'],
+        inventory: { fog: 0, flip: 0, freeze: 0 }
     },
     currentPlayer: 'X', // สำหรับ XO: 'X' หรือ 'O' / สำหรับ Memory: 'P1' หรือ 'P2'
     
@@ -54,7 +56,10 @@ let gameState = {
         { id: 'sound_duck', type: 'sound', icon: '🦆', name: 'เสียงเป็ดก๊าบๆ', cost: 30 },
         { id: 'sound_cat', type: 'sound', icon: '🐱', name: 'เสียงแมวเหมียว', cost: 30 },
         { id: 'sound_dino', type: 'sound', icon: '🦖', name: 'เสียงไดโนเสาร์', cost: 40 },
-        { id: 'sound_laser', type: 'sound', icon: '🚀', name: 'เสียงยานอวกาศ', cost: 40 }
+        { id: 'sound_laser', type: 'sound', icon: '🚀', name: 'เสียงยานอวกาศ', cost: 40 },
+        { id: 'prank_fog', type: 'prank', icon: '🌫️', name: 'หมอกบังตา', cost: 30 },
+        { id: 'prank_flip', type: 'prank', icon: '🙃', name: 'จอกลับหัว', cost: 20 },
+        { id: 'prank_freeze', type: 'prank', icon: '❄️', name: 'แช่แข็งปุ่มกด', cost: 10 }
     ],
     
     // ตั้งค่าเสียง
@@ -145,7 +150,8 @@ const screens = {
     'tap-screen': document.getElementById('tap-screen'),
     'store-screen': document.getElementById('store-screen'),
     'embed-screen': document.getElementById('embed-screen'),
-    'spooky-screen': document.getElementById('spooky-screen')
+    'spooky-screen': document.getElementById('spooky-screen'),
+    'dressup-screen': document.getElementById('dressup-screen')
 };
 
 // ข้อมูลหน้ากรอกผู้เล่น
@@ -214,7 +220,8 @@ function saveGameState() {
                 activeBadge: gameState.player1.activeBadge,
                 unlockedBadges: gameState.player1.unlockedBadges,
                 activeSound: gameState.player1.activeSound,
-                unlockedSounds: gameState.player1.unlockedSounds
+                unlockedSounds: gameState.player1.unlockedSounds,
+                inventory: gameState.player1.inventory
             },
             player2: {
                 name: gameState.player2.name,
@@ -222,7 +229,8 @@ function saveGameState() {
                 activeBadge: gameState.player2.activeBadge,
                 unlockedBadges: gameState.player2.unlockedBadges,
                 activeSound: gameState.player2.activeSound,
-                unlockedSounds: gameState.player2.unlockedSounds
+                unlockedSounds: gameState.player2.unlockedSounds,
+                inventory: gameState.player2.inventory
             }
         };
         localStorage.setItem('arcade_game_state', JSON.stringify(dataToSave));
@@ -243,6 +251,7 @@ function loadGameState() {
                 gameState.player1.unlockedBadges = Array.isArray(data.player1.unlockedBadges) ? data.player1.unlockedBadges : [];
                 gameState.player1.activeSound = data.player1.activeSound || 'standard';
                 gameState.player1.unlockedSounds = Array.isArray(data.player1.unlockedSounds) ? data.player1.unlockedSounds : ['standard'];
+                gameState.player1.inventory = data.player1.inventory || { fog: 0, flip: 0, freeze: 0 };
             }
             if (data.player2) {
                 gameState.player2.name = data.player2.name || 'พี่อชิ';
@@ -251,6 +260,7 @@ function loadGameState() {
                 gameState.player2.unlockedBadges = Array.isArray(data.player2.unlockedBadges) ? data.player2.unlockedBadges : [];
                 gameState.player2.activeSound = data.player2.activeSound || 'standard';
                 gameState.player2.unlockedSounds = Array.isArray(data.player2.unlockedSounds) ? data.player2.unlockedSounds : ['standard'];
+                gameState.player2.inventory = data.player2.inventory || { fog: 0, flip: 0, freeze: 0 };
             }
             
             // อัปเดตช่องกรอกชื่อในหน้า Setup
@@ -535,6 +545,7 @@ function initXO() {
     
     // วาดบอร์ด XO
     xoBoardGrid.innerHTML = '';
+    xoBoardGrid.classList.remove('prank-fogged', 'prank-flipped', 'prank-frozen');
     gameState.xo.board.forEach((cell, index) => {
         const job = gameState.xo.boardOccupations[index];
         
@@ -577,6 +588,7 @@ function updateXOTurnUI() {
         xoCurrentTurnName.textContent = gameState.player2.name + ' (O)';
         xoCurrentTurnName.className = 'p2-text';
     }
+    renderPrankTrays();
 }
 
 function handleXOCellClick(index, cellEl) {
@@ -697,9 +709,14 @@ function initMemory() {
         clearInterval(gameState.memory.timerInterval);
     }
     
+    // ล้างเอฟเฟกต์แกล้ง
+    memoryBoardGrid.classList.remove('prank-fogged', 'prank-flipped', 'prank-frozen');
+    
     // โหมด Versus (แข่งคู่) หรือ Solo (เล่นเดี่ยว)
     if (gameState.memory.mode === 'versus') {
         memVSScoreboard.style.display = 'flex';
+        const memPrankContainer = document.getElementById('mem-prank-container-vs');
+        if (memPrankContainer) memPrankContainer.style.display = 'flex';
         memSoloInfo.style.display = 'none';
         memTurnBanner.style.display = 'block';
         
@@ -712,6 +729,8 @@ function initMemory() {
         updateMemoryTurnUI();
     } else {
         memVSScoreboard.style.display = 'none';
+        const memPrankContainer = document.getElementById('mem-prank-container-vs');
+        if (memPrankContainer) memPrankContainer.style.display = 'none';
         memSoloInfo.style.display = 'flex';
         memTurnBanner.style.display = 'none';
         
@@ -806,6 +825,7 @@ function updateMemoryTurnUI() {
         memCurrentTurnName.textContent = gameState.player2.name;
         memCurrentTurnName.className = 'p2-text';
     }
+    renderPrankTrays();
 }
 
 function handleMemoryCardClick(cardEl, index) {
@@ -1100,7 +1120,12 @@ function initSpeedTap() {
     tapP1ScoreEl.textContent = '0';
     tapP2ScoreEl.textContent = '0';
 
+    // ล้างเอฟเฟกต์แกล้ง
+    tapP1ChoicesEl.classList.remove('prank-fogged', 'prank-flipped', 'prank-frozen');
+    tapP2ChoicesEl.classList.remove('prank-fogged', 'prank-flipped', 'prank-frozen');
+
     nextSpeedTapRound();
+    renderPrankTrays();
 }
 
 function nextSpeedTapRound() {
@@ -1305,15 +1330,19 @@ function renderStoreForPlayer(playerNum, containerEl) {
         const itemCard = document.createElement('div');
         itemCard.classList.add('store-item-card');
         
-        const isUnlocked = item.type === 'badge' 
+        const isPrank = item.type === 'prank';
+        
+        const isUnlocked = !isPrank && (item.type === 'badge' 
             ? player.unlockedBadges.includes(item.icon)
-            : player.unlockedSounds.includes(item.id);
+            : player.unlockedSounds.includes(item.id));
             
-        const isEquipped = item.type === 'badge'
+        const isEquipped = !isPrank && (item.type === 'badge'
             ? player.activeBadge === item.icon
-            : player.activeSound === item.id;
+            : player.activeSound === item.id);
             
-        if (isEquipped) {
+        if (isPrank) {
+            itemCard.classList.add('prank-item');
+        } else if (isEquipped) {
             itemCard.classList.add('equipped');
         } else if (isUnlocked) {
             itemCard.classList.add('unlocked');
@@ -1325,7 +1354,13 @@ function renderStoreForPlayer(playerNum, containerEl) {
         
         const nameEl = document.createElement('div');
         nameEl.classList.add('store-item-name');
-        nameEl.textContent = item.name;
+        if (isPrank) {
+            const prankKey = item.id.replace('prank_', '');
+            const count = player.inventory[prankKey] || 0;
+            nameEl.textContent = `${item.name} (มี: ${count})`;
+        } else {
+            nameEl.textContent = item.name;
+        }
         
         const actionBtn = document.createElement('button');
         actionBtn.classList.add('store-item-btn');
@@ -1364,9 +1399,12 @@ function buyStoreItem(playerNum, item) {
         if (item.type === 'badge') {
             player.unlockedBadges.push(item.icon);
             player.activeBadge = item.icon;
-        } else {
+        } else if (item.type === 'sound') {
             player.unlockedSounds.push(item.id);
             player.activeSound = item.id;
+        } else if (item.type === 'prank') {
+            const prankKey = item.id.replace('prank_', '');
+            player.inventory[prankKey] = (player.inventory[prankKey] || 0) + 1;
         }
         
         playSound('correct');
@@ -1391,6 +1429,146 @@ function equipStoreItem(playerNum, item) {
     playSound('click');
     initStore();
     updateDisplayNames();
+    saveGameState();
+}
+
+// --- [ ระบบการ์ดแกล้งกัน Prank Battle System ] ---
+
+function playPrankSound(type) {
+    if (!gameState.soundEnabled) return;
+    initAudio();
+    if (type === 'fog') {
+        playTone(180, 'triangle', 0.25, 0.15);
+        setTimeout(() => playTone(120, 'triangle', 0.4, 0.15), 200);
+    } else if (type === 'flip') {
+        playTone(300, 'sine', 0.1, 0.15);
+        setTimeout(() => playTone(500, 'sine', 0.1, 0.15), 80);
+        setTimeout(() => playTone(900, 'sine', 0.15, 0.15), 160);
+    } else if (type === 'freeze') {
+        playTone(900, 'sawtooth', 0.08, 0.08);
+        setTimeout(() => playTone(750, 'sawtooth', 0.08, 0.08), 80);
+        setTimeout(() => playTone(600, 'sawtooth', 0.15, 0.08), 160);
+    }
+}
+
+function renderPrankTrays() {
+    const trays = {
+        1: [
+            document.getElementById('xo-p1-pranks'),
+            document.getElementById('mem-p1-pranks'),
+            document.getElementById('tap-p1-pranks')
+        ],
+        2: [
+            document.getElementById('xo-p2-pranks'),
+            document.getElementById('mem-p2-pranks'),
+            document.getElementById('tap-p2-pranks')
+        ]
+    };
+    
+    const prankList = [
+        { id: 'fog', icon: '🌫️' },
+        { id: 'flip', icon: '🙃' },
+        { id: 'freeze', icon: '❄️' }
+    ];
+
+    [1, 2].forEach(pNum => {
+        const player = pNum === 1 ? gameState.player1 : gameState.player2;
+        const playerTrays = trays[pNum];
+        
+        playerTrays.forEach(tray => {
+            if (!tray) return;
+            tray.innerHTML = '';
+            
+            prankList.forEach(prank => {
+                const count = player.inventory[prank.id] || 0;
+                
+                const btn = document.createElement('button');
+                btn.classList.add('prank-bubble-btn');
+                btn.innerHTML = prank.icon;
+                
+                let isDisabled = false;
+                
+                if (count <= 0) {
+                    isDisabled = true;
+                }
+                
+                const isSpeedTapActive = (gameState.currentScreen === 'tap-screen');
+                const isXOActive = (gameState.currentScreen === 'xo-screen');
+                const isMemoryActive = (gameState.currentScreen === 'memory-screen');
+                
+                if (isXOActive) {
+                    const isOpponentTurn = (pNum === 1 && gameState.currentPlayer === 'O') || 
+                                           (pNum === 2 && gameState.currentPlayer === 'X');
+                    if (!isOpponentTurn) {
+                        isDisabled = true;
+                    }
+                } else if (isMemoryActive) {
+                    if (gameState.memory.mode === 'solo') {
+                        isDisabled = true;
+                    } else {
+                        const isOpponentTurn = (pNum === 1 && gameState.currentPlayer === 'P2') || 
+                                               (pNum === 2 && gameState.currentPlayer === 'P1');
+                        if (!isOpponentTurn) {
+                            isDisabled = true;
+                        }
+                    }
+                }
+                
+                if (isDisabled) {
+                    btn.classList.add('disabled');
+                } else {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deployPrank(pNum, prank.id);
+                    });
+                }
+                
+                if (count > 0) {
+                    const badge = document.createElement('span');
+                    badge.classList.add('prank-badge-count');
+                    badge.textContent = `x${count}`;
+                    btn.appendChild(badge);
+                }
+                
+                tray.appendChild(btn);
+            });
+        });
+    });
+}
+
+function deployPrank(fromPlayerNum, prankType) {
+    const sender = fromPlayerNum === 1 ? gameState.player1 : gameState.player2;
+    if (!sender.inventory || (sender.inventory[prankType] || 0) <= 0) return;
+    
+    sender.inventory[prankType]--;
+    playPrankSound(prankType);
+    
+    let targetEl = null;
+    const isXOActive = (gameState.currentScreen === 'xo-screen');
+    const isMemoryActive = (gameState.currentScreen === 'memory-screen');
+    const isSpeedTapActive = (gameState.currentScreen === 'tap-screen');
+    
+    if (isXOActive) {
+        targetEl = document.getElementById('xo-board-grid');
+    } else if (isMemoryActive) {
+        targetEl = document.getElementById('memory-board-grid');
+    } else if (isSpeedTapActive) {
+        targetEl = fromPlayerNum === 1 
+            ? document.getElementById('tap-p2-choices') 
+            : document.getElementById('tap-p1-choices');
+    }
+    
+    if (targetEl) {
+        const cssClass = 'prank-' + (prankType === 'fog' ? 'fogged' : prankType === 'flip' ? 'flipped' : 'frozen');
+        targetEl.classList.add(cssClass);
+        
+        const duration = prankType === 'freeze' ? 4000 : 8000;
+        setTimeout(() => {
+            targetEl.classList.remove(cssClass);
+        }, duration);
+    }
+    
+    renderPrankTrays();
     saveGameState();
 }
 
@@ -1534,6 +1712,14 @@ document.getElementById('play-spooky-card').addEventListener('click', () => {
     initSpookyEscape();
 });
 
+document.getElementById('play-dressup-card').addEventListener('click', () => {
+    initAudio();
+    playSound('click');
+    showScreen('dressup-screen');
+    updateDisplayNames();
+    initDressUp();
+});
+
 // ปุ่มกดกากบาทสีมุมซ้ายบนเพื่อย้อนกลับเมนูหลักอาเขตคลังเกมส์
 document.querySelectorAll('.btn-back-menu').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1597,6 +1783,7 @@ document.getElementById('reset-all-data-btn').addEventListener('click', () => {
         gameState.player1.unlockedBadges = [];
         gameState.player1.activeSound = 'standard';
         gameState.player1.unlockedSounds = ['standard'];
+        gameState.player1.inventory = { fog: 0, flip: 0, freeze: 0 };
         
         gameState.player2.name = 'พี่อชิ';
         gameState.player2.coins = 10;
@@ -1604,6 +1791,7 @@ document.getElementById('reset-all-data-btn').addEventListener('click', () => {
         gameState.player2.unlockedBadges = [];
         gameState.player2.activeSound = 'standard';
         gameState.player2.unlockedSounds = ['standard'];
+        gameState.player2.inventory = { fog: 0, flip: 0, freeze: 0 };
         
         if (p1NameInput) p1NameInput.value = gameState.player1.name;
         if (p2NameInput) p2NameInput.value = gameState.player2.name;
@@ -2058,3 +2246,451 @@ function playSpookySound(type) {
 
 // โหลดข้อมูลจาก LocalStorage ตอนเริ่มต้นรันสคริปต์
 loadGameState();
+
+// --- [ 👗 เกมที่ 8: Job Dress-Up (เกมแต่งตัวอาชีพ) ] ---
+
+// ข้อมูลตู้เสื้อผ้าอาชีพ
+const dressUpItems = {
+    head: [
+        { id: 'chef_hat', name: 'หมวกเชฟ', icon: '👨‍🍳', job: 'chef' },
+        { id: 'police_cap', name: 'หมวกตำรวจ', icon: '👮', job: 'police' },
+        { id: 'fire_helmet', name: 'หมวกดับเพลิง', icon: '🧑‍🚒', job: 'firefighter' },
+        { id: 'pilot_cap', name: 'หมวกกัปตัน', icon: '👨‍✈️', job: 'pilot' },
+        { id: 'artist_beret', name: 'หมวกเบเร่ต์', icon: '🎨', job: 'artist' }
+    ],
+    body: [
+        { id: 'chef_apron', name: 'ชุดเชฟ', icon: 'uniform-chef', job: 'chef', isCss: true },
+        { id: 'doctor_gown', name: 'เสื้อกาวน์หมอ', icon: 'uniform-doctor', job: 'doctor', isCss: true },
+        { id: 'police_uniform', name: 'ชุดตำรวจ', icon: 'uniform-police', job: 'police', isCss: true },
+        { id: 'fire_suit', name: 'ชุดนักดับเพลิง', icon: 'uniform-firefighter', job: 'firefighter', isCss: true },
+        { id: 'pilot_uniform', name: 'ชุดนักบิน', icon: 'uniform-pilot', job: 'pilot', isCss: true },
+        { id: 'artist_smock', name: 'ชุดศิลปิน', icon: 'uniform-artist', job: 'artist', isCss: true }
+    ],
+    tool: [
+        { id: 'chef_whisk', name: 'ตะกร้อตีไข่', icon: '🍳', job: 'chef' },
+        { id: 'doctor_stethoscope', name: 'หูฟังแพทย์', icon: '🩺', job: 'doctor' },
+        { id: 'police_handcuffs', name: 'กุญแจมือ', icon: '🚨', job: 'police' },
+        { id: 'fire_extinguisher', name: 'ถังดับเพลิง', icon: '🧯', job: 'firefighter' },
+        { id: 'pilot_plane', name: 'เครื่องบินเล็ก', icon: '✈️', job: 'pilot' },
+        { id: 'artist_palette', name: 'จานสีระบายสี', icon: '🎨', job: 'artist' }
+    ]
+};
+
+// ข้อมูลเฉลยแต่ละอาชีพ
+const dressUpJobMatches = {
+    chef: { head: 'chef_hat', body: 'chef_apron', tool: 'chef_whisk', nameTh: 'เชฟ', nameEn: 'chef', sentence: 'She is a chef.' },
+    doctor: { head: null, body: 'doctor_gown', tool: 'doctor_stethoscope', nameTh: 'หมอ', nameEn: 'doctor', sentence: 'He is a doctor.' },
+    police: { head: 'police_cap', body: 'police_uniform', tool: 'police_handcuffs', nameTh: 'ตำรวจ', nameEn: 'police officer', sentence: 'He is a police officer.' },
+    firefighter: { head: 'fire_helmet', body: 'fire_suit', tool: 'fire_extinguisher', nameTh: 'นักดับเพลิง', nameEn: 'firefighter', sentence: 'I want to be a firefighter.' },
+    pilot: { head: 'pilot_cap', body: 'pilot_uniform', tool: 'pilot_plane', nameTh: 'นักบิน', nameEn: 'pilot', sentence: 'I want to be a pilot.' },
+    artist: { head: 'artist_beret', body: 'artist_smock', tool: 'artist_palette', nameTh: 'ศิลปิน', nameEn: 'artist', sentence: 'She is an artist.' }
+};
+
+// เพิ่ม state สำหรับ dressup ลงใน gameState
+gameState.dressup = {
+    character: 'p1', // 'p1' (น้องอันดา) หรือ 'p2' (พี่อชิ)
+    mode: 'challenge', // 'challenge' หรือ 'freestyle'
+    head: null,
+    body: null,
+    tool: null,
+    targetJob: 'doctor', // สุ่มอาชีพเป้าหมาย
+    score: 0,
+    activeCategory: 'head' // หมวดเสื้อผ้าที่กำลังเลือกดู
+};
+
+// DOM Elements สำหรับแต่งตัว
+const dressupCoinsDisplay = document.getElementById('dressup-coins-display');
+const dressupScoreDisplay = document.getElementById('dressup-score-display');
+const dressupChallengeText = document.getElementById('dressup-challenge-text');
+const wardrobeItemsContainer = document.getElementById('wardrobe-items-container');
+const avatarDollBase = document.getElementById('avatar-doll-base');
+const apparelHeadwear = document.getElementById('apparel-headwear');
+const apparelBody = document.getElementById('apparel-body');
+const apparelTool = document.getElementById('apparel-tool');
+const avatarCareerTag = document.getElementById('avatar-career-tag');
+
+const charAndaBtn = document.getElementById('dressup-char-anda');
+const charAchiBtn = document.getElementById('dressup-char-achi');
+
+const dressupResetBtn = document.getElementById('dressup-reset-btn');
+const dressupFreestyleBtn = document.getElementById('dressup-freestyle-btn');
+const dressupSubmitBtn = document.getElementById('dressup-submit-btn');
+
+function initDressUp() {
+    hideWinModal();
+    
+    // ตั้งค่าเหรียญเริ่มต้น
+    updateCoinsUI();
+    if (dressupCoinsDisplay) {
+        dressupCoinsDisplay.textContent = gameState.dressup.character === 'p1'
+            ? gameState.player1.coins 
+            : gameState.player2.coins;
+    }
+    
+    if (dressupScoreDisplay) {
+        dressupScoreDisplay.textContent = gameState.dressup.score;
+    }
+
+    // สุ่มโจทย์ใหม่หากเพิ่งเริ่มเล่น
+    if (gameState.dressup.mode === 'challenge' && !gameState.dressup.targetJob) {
+        pickNewDressUpChallenge();
+    } else if (gameState.dressup.mode === 'challenge') {
+        updateDressUpChallengeUI();
+    } else {
+        setDressUpFreestyleMode();
+    }
+
+    // ตั้งค่าเริ่มต้นตัวละคร (น้องอันดา P1)
+    setDressUpCharacter(gameState.dressup.character || 'p1');
+
+    // วาดเสื้อผ้าหมวดที่กำลังใช้งานอยู่
+    renderWardrobe(gameState.dressup.activeCategory || 'head');
+    
+    // อัปเดตรูปร่างหน้าตาตัวตุ๊กตา
+    updateAvatarDollLayers();
+}
+
+function pickNewDressUpChallenge() {
+    const jobs = Object.keys(dressUpJobMatches);
+    // หลีกเลี่ยงโจทย์เดิมถ้าเป็นไปได้
+    let nextJob = jobs[Math.floor(Math.random() * jobs.length)];
+    if (nextJob === gameState.dressup.targetJob && jobs.length > 1) {
+        nextJob = jobs.filter(j => j !== gameState.dressup.targetJob)[0];
+    }
+    gameState.dressup.targetJob = nextJob;
+    gameState.dressup.mode = 'challenge';
+    
+    updateDressUpChallengeUI();
+}
+
+function updateDressUpChallengeUI() {
+    const jobData = dressUpJobMatches[gameState.dressup.targetJob];
+    const nameText = gameState.dressup.character === 'p1' ? gameState.player1.name : gameState.player2.name;
+    const challengeMsg = `💡 ช่วยแต่งตัวให้ <b>${nameText}</b> เป็น <b>${jobData.nameTh} (${jobData.nameEn.toUpperCase()})</b> หน่อยนะ!`;
+    if (dressupChallengeText) {
+        dressupChallengeText.innerHTML = challengeMsg;
+    }
+    
+    // อัปเดตสไตล์การ์ดเป้าหมาย
+    const promptCard = document.getElementById('dressup-prompt-card');
+    if (promptCard) {
+        promptCard.style.borderColor = '#f472b6';
+        promptCard.style.color = '#8b5cf6';
+        promptCard.style.background = 'white';
+    }
+}
+
+function setDressUpFreestyleMode() {
+    gameState.dressup.mode = 'freestyle';
+    gameState.dressup.targetJob = null;
+    if (dressupChallengeText) {
+        dressupChallengeText.innerHTML = "🎨 <b>โหมดแต่งตัวอิสระ!</b> น้องๆ สามารถมิกซ์แอนด์แมตช์ชุดผสมอาชีพได้ตามใจจินตนาการเลยนะ";
+    }
+    const promptCard = document.getElementById('dressup-prompt-card');
+    if (promptCard) {
+        promptCard.style.borderColor = '#8b5cf6';
+        promptCard.style.color = '#db2777';
+        promptCard.style.background = '#fef08a'; // พื้นหลังสีเหลืองทองครีเอทีฟ
+    }
+}
+
+function setDressUpCharacter(charType) {
+    gameState.dressup.character = charType;
+    if (charType === 'p1') {
+        charAndaBtn.classList.add('active');
+        charAchiBtn.classList.remove('active');
+        avatarDollBase.className = 'avatar-doll char-doll-anda';
+    } else {
+        charAndaBtn.classList.remove('active');
+        charAchiBtn.classList.add('active');
+        avatarDollBase.className = 'avatar-doll char-doll-achi';
+    }
+    
+    // อัปเดตคำเชิญถ้าอยู่ในโหมด Challenge
+    if (gameState.dressup.mode === 'challenge') {
+        updateDressUpChallengeUI();
+    }
+    
+    // แสดงผลเหรียญตามกระเป๋าเงินผู้เล่นที่กำลังแต่ง
+    if (dressupCoinsDisplay) {
+        dressupCoinsDisplay.textContent = charType === 'p1' ? gameState.player1.coins : gameState.player2.coins;
+    }
+}
+
+function renderWardrobe(category) {
+    gameState.dressup.activeCategory = category;
+    
+    // อัปเดตแท็บตู้เสื้อผ้า
+    document.querySelectorAll('.wardrobe-tab-btn').forEach(btn => {
+        if (btn.getAttribute('data-category') === category) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    if (!wardrobeItemsContainer) return;
+    wardrobeItemsContainer.innerHTML = '';
+
+    const items = dressUpItems[category] || [];
+    
+    items.forEach(item => {
+        const itemCard = document.createElement('div');
+        itemCard.classList.add('wardrobe-item-card');
+        
+        // เช็คว่าใส่อยู่หรือไม่
+        const currentEquippedId = gameState.dressup[category];
+        if (currentEquippedId === item.id) {
+            itemCard.classList.add('equipped-item');
+        }
+
+        const iconContainer = document.createElement('div');
+        iconContainer.classList.add('wardrobe-item-icon');
+        
+        if (item.isCss) {
+            // เสื้อวาดด้วย CSS
+            const cssUniform = document.createElement('div');
+            cssUniform.className = `css-uniform ${item.icon}`;
+            iconContainer.appendChild(cssUniform);
+        } else {
+            iconContainer.textContent = item.icon;
+        }
+
+        const nameEl = document.createElement('div');
+        nameEl.classList.add('wardrobe-item-name');
+        nameEl.textContent = item.name;
+
+        const jobLabel = document.createElement('div');
+        jobLabel.classList.add('wardrobe-item-job');
+        jobLabel.textContent = `อาชีพ: ${getJobThName(item.job)}`;
+
+        itemCard.appendChild(iconContainer);
+        itemCard.appendChild(nameEl);
+        itemCard.appendChild(jobLabel);
+
+        itemCard.addEventListener('click', () => {
+            equipDressUpItem(category, item.id);
+        });
+
+        wardrobeItemsContainer.appendChild(itemCard);
+    });
+}
+
+function getJobThName(jobKey) {
+    const matches = {
+        chef: 'เชฟ',
+        doctor: 'หมอ',
+        police: 'ตำรวจ',
+        firefighter: 'นักดับเพลิง',
+        pilot: 'นักบิน',
+        artist: 'ศิลปิน'
+    };
+    return matches[jobKey] || 'ทั่วไป';
+}
+
+function equipDressUpItem(category, itemId) {
+    initAudio();
+    // กดซ้ำที่ใส่เพื่อถอดออก
+    if (gameState.dressup[category] === itemId) {
+        gameState.dressup[category] = null;
+        playSound('click');
+    } else {
+        gameState.dressup[category] = itemId;
+        // เล่นเสียงฟิตติ้งเสื้อผ้า
+        playTone(500, 'triangle', 0.08);
+        setTimeout(() => playTone(700, 'triangle', 0.1), 60);
+    }
+    
+    // อัปเดตตู้เสื้อผ้าและหน้าตาตุ๊กตา
+    renderWardrobe(category);
+    updateAvatarDollLayers();
+}
+
+function updateAvatarDollLayers() {
+    // 1. หมวก / เครื่องหัว
+    const headId = gameState.dressup.head;
+    if (headId) {
+        const item = dressUpItems.head.find(i => i.id === headId);
+        apparelHeadwear.textContent = item ? item.icon : '';
+        apparelHeadwear.style.display = 'flex';
+    } else {
+        apparelHeadwear.textContent = '';
+        apparelHeadwear.style.display = 'none';
+    }
+
+    // 2. เสื้อผ้า / CSS Uniform
+    const bodyId = gameState.dressup.body;
+    if (bodyId) {
+        const item = dressUpItems.body.find(i => i.id === bodyId);
+        if (item) {
+            apparelBody.innerHTML = `<div class="css-uniform ${item.icon}"></div>`;
+            apparelBody.style.display = 'block';
+        }
+    } else {
+        apparelBody.innerHTML = '';
+        apparelBody.style.display = 'none';
+    }
+
+    // 3. อุปกรณ์ถือ / เครื่องมือ
+    const toolId = gameState.dressup.tool;
+    if (toolId) {
+        const item = dressUpItems.tool.find(i => i.id === toolId);
+        apparelTool.textContent = item ? item.icon : '';
+        apparelTool.style.display = 'flex';
+    } else {
+        apparelTool.textContent = '';
+        apparelTool.style.display = 'none';
+    }
+
+    // 4. อัปเดตแท็กอาชีพแบบเรียลไทม์
+    updateAvatarCareerTag();
+}
+
+function updateAvatarCareerTag() {
+    const headId = gameState.dressup.head;
+    const bodyId = gameState.dressup.body;
+    const toolId = gameState.dressup.tool;
+
+    const headItem = dressUpItems.head.find(i => i.id === headId);
+    const bodyItem = dressUpItems.body.find(i => i.id === bodyId);
+    const toolItem = dressUpItems.tool.find(i => i.id === toolId);
+
+    const jobs = [];
+    if (headItem) jobs.push(getJobThName(headItem.job));
+    if (bodyItem) jobs.push(getJobThName(bodyItem.job));
+    if (toolItem) jobs.push(getJobThName(toolItem.job));
+
+    if (jobs.length === 0) {
+        avatarCareerTag.textContent = 'เด็กนักแต่งตัว 🧸';
+        return;
+    }
+
+    // เอาอาชีพที่ซ้ำออก
+    const uniqueJobs = [...new Set(jobs)];
+    
+    if (uniqueJobs.length === 1) {
+        avatarCareerTag.textContent = `อาชีพ: ${uniqueJobs[0]} ✨`;
+    } else {
+        // ผสมอาชีพตลกๆ เช่น หมอ-นักบิน-เชฟ
+        avatarCareerTag.textContent = `${uniqueJobs.join('-')} 🧙‍♂️`;
+    }
+}
+
+function resetDressUpClothes() {
+    initAudio();
+    gameState.dressup.head = null;
+    gameState.dressup.body = null;
+    gameState.dressup.tool = null;
+    
+    playSound('click');
+    renderWardrobe(gameState.dressup.activeCategory);
+    updateAvatarDollLayers();
+}
+
+function submitDressUpAnswer() {
+    initAudio();
+    if (gameState.dressup.mode === 'freestyle') {
+        // โหมดเล่นอิสระ: เล่นเสียงอ่านออกเสียงคำรวมเฉยๆ เพื่อความสนุก
+        const tagText = avatarCareerTag.textContent;
+        playTone(600, 'sine', 0.1);
+        setTimeout(() => playTone(800, 'sine', 0.15), 80);
+        speakEnglish(`Creative combinations! ${tagText}`);
+        alert(`ชุดนี้น่ารักมากเลยครับ! เป็น ${tagText}`);
+        return;
+    }
+
+    // เช็คโหมด Challenge
+    const jobKey = gameState.dressup.targetJob;
+    const targetConfig = dressUpJobMatches[jobKey];
+    
+    const headCorrect = gameState.dressup.head === targetConfig.head;
+    const bodyCorrect = gameState.dressup.body === targetConfig.body;
+    const toolCorrect = gameState.dressup.tool === targetConfig.tool;
+
+    if (bodyCorrect && toolCorrect && headCorrect) {
+        // ถูกต้อง! รับรางวัล 15 เหรียญทอง
+        gameState.dressup.score++;
+        dressupScoreDisplay.textContent = gameState.dressup.score;
+        
+        const isAnda = gameState.dressup.character === 'p1';
+        const playerNum = isAnda ? 1 : 2;
+        const playerName = isAnda ? gameState.player1.name : gameState.player2.name;
+        
+        // มอบ 15 Coins
+        addCoins(playerNum, 15);
+        if (dressupCoinsDisplay) {
+            dressupCoinsDisplay.textContent = isAnda ? gameState.player1.coins : gameState.player2.coins;
+        }
+
+        playSound('win');
+        startConfetti();
+
+        // สะกดตัวอักษร Phonics
+        speakEnglish(`That is correct! Spell ${targetConfig.nameEn}: ${targetConfig.nameEn.split('').join('-')}. ${targetConfig.sentence}`);
+
+        alert(`🎉 ยินดีด้วยครับแต่งตัวให้ ${playerName} เป็น ${targetConfig.nameTh} ถูกต้องสมบูรณ์! ได้รับ 🪙 15 เหรียญทอง! 🎉`);
+        
+        // สุ่มโจทย์ข้อใหม่ถัดไป
+        pickNewDressUpChallenge();
+        resetDressUpClothes();
+        saveGameState();
+    } else {
+        // ผิด
+        playSound('wrong');
+        
+        let hint = "แต่งตัวผิดอาชีพหรือยังใส่เสื้อผ้าไม่ครบครับ:\n";
+        if (!bodyCorrect) hint += "- เสื้อผ้า/ชุดเครื่องแบบยังไม่ถูกต้อง\n";
+        if (!toolCorrect) hint += "- อุปกรณ์เครื่องมือที่ถือยังไม่ถูกต้อง\n";
+        if (!headCorrect && targetConfig.head !== null) hint += "- หมวกหรือเครื่องหัวยังไม่ถูกต้อง\n";
+        
+        alert(`❌ เกือบถูกแล้วครับเด็กๆ ลองตรวจเช็คดูใหม่นะ:\n\n${hint}`);
+    }
+}
+
+// ผูกมัดเหตุการณ์สำหรับปุ่มในแต่งตัว
+setTimeout(() => {
+    const charAndaBtnLocal = document.getElementById('dressup-char-anda');
+    const charAchiBtnLocal = document.getElementById('dressup-char-achi');
+    const dressupResetBtnLocal = document.getElementById('dressup-reset-btn');
+    const dressupFreestyleBtnLocal = document.getElementById('dressup-freestyle-btn');
+    const dressupSubmitBtnLocal = document.getElementById('dressup-submit-btn');
+
+    if (charAndaBtnLocal) {
+        charAndaBtnLocal.addEventListener('click', () => {
+            playSound('click');
+            setDressUpCharacter('p1');
+        });
+    }
+
+    if (charAchiBtnLocal) {
+        charAchiBtnLocal.addEventListener('click', () => {
+            playSound('click');
+            setDressUpCharacter('p2');
+        });
+    }
+
+    // ผูกมัดการเปลี่ยนแท็บประเภทใน Wardrobe
+    document.querySelectorAll('.wardrobe-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const cat = btn.getAttribute('data-category');
+            playSound('click');
+            renderWardrobe(cat);
+        });
+    });
+
+    if (dressupResetBtnLocal) {
+        dressupResetBtnLocal.addEventListener('click', resetDressUpClothes);
+    }
+
+    if (dressupFreestyleBtnLocal) {
+        dressupFreestyleBtnLocal.addEventListener('click', () => {
+            playSound('click');
+            setDressUpFreestyleMode();
+            resetDressUpClothes();
+        });
+    }
+
+    if (dressupSubmitBtnLocal) {
+        dressupSubmitBtnLocal.addEventListener('click', submitDressUpAnswer);
+    }
+}, 500);

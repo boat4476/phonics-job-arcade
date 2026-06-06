@@ -51,7 +51,7 @@
             <header class="game-header">
                 <button id="arcade-back-btn" class="btn btn-icon">⚙️ ตั้งค่าใหม่</button>
                 <div class="game-title">Arcade Menu</div>
-                <div class="player-hello">สวัสดี <span class="p1-text" id="hello-p1">อันดา</span> (🪙 <span id="p1-coins-display">0</span>) & <span class="p2-text" id="hello-p2">อชิ</span> (🪙 <span id="p2-coins-display">0</span>)</div>
+                <div class="player-hello">สวัสดี <span class="p1-text" id="hello-p1">อันดา</span> (🪙 <span id="p1-coins-display">0</span>) & <span class="p2-text" id="hello-p2">อชิ</span> (🪙 <span id="p2-coins-display">0</span>) | <a href="../../../น้องพราว/เกม_จิ้มภาพออกเสียง/index.html" class="btn btn-secondary btn-sm" style="text-decoration: none; padding: 4px 8px; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; background: #ec4899; color: white; border-color: #ec4899; margin-left: 8px;">🦄 มินิเกมพราว</a></div>
             </header>
             
             <div class="arcade-title">
@@ -123,6 +123,15 @@
                     <button class="btn btn-primary btn-sm" style="background: #a855f7; border-color: #a855f7;">ท้าทายความมืด 🦇</button>
                 </div>
 
+                <!-- การ์ดเกม 8: Job Dress-Up -->
+                <div class="arcade-game-card" id="play-dressup-card" style="background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); border-color: #f472b6;">
+                    <div class="game-badge green-badge" style="background: #f472b6; color: white;">แต่งตัว / สะกดคำ</div>
+                    <div class="game-card-icon" style="filter: drop-shadow(0 0 10px #f472b6);">👗🤵</div>
+                    <h3 style="color: #fdf2f8;">Job Dress-Up</h3>
+                    <p style="color: #fbcfe8;">แต่งตัวให้ตุ๊กตาน้องอันดา & พี่อชิ ตามคำสั่งสะกดคำอาชีพให้ถูกต้องเพื่อรับเหรียญทอง!</p>
+                    <button class="btn btn-primary btn-sm" style="background: #db2777; border-color: #db2777;">คลิกเข้าตู้เสื้อผ้า 🎀</button>
+                </div>
+
             </div>
         </div>
 
@@ -154,6 +163,12 @@
                     </div>
                     <div class="mark-indicator">O</div>
                 </div>
+            </div>
+
+            <!-- แผงแกล้งเพื่อนในเกม XO -->
+            <div class="prank-bar-container">
+                <div class="prank-tray" id="xo-p1-pranks"></div>
+                <div class="prank-tray" id="xo-p2-pranks"></div>
             </div>
 
             <div class="turn-message" id="xo-turn-banner">
@@ -207,6 +222,12 @@
                     </div>
                     <div class="mark-indicator">🎯</div>
                 </div>
+            </div>
+
+            <!-- แผงแกล้งเพื่อนในเกมจับคู่การ์ด -->
+            <div class="prank-bar-container" id="mem-prank-container-vs">
+                <div class="prank-tray" id="mem-p1-pranks"></div>
+                <div class="prank-tray" id="mem-p2-pranks"></div>
             </div>
 
             <!-- แผงข้อมูลในโหมด Solo (ซ่อนในโหมด Versus) -->
@@ -287,6 +308,7 @@
                             <span class="player-name display-p2-name-txt">พี่อชิ</span>
                             <span class="tap-score" id="tap-p2-score">0</span>
                         </div>
+                        <div class="prank-tray mini-tray" id="tap-p2-pranks"></div>
                         <div class="tap-status" id="tap-p2-status">เตรียมพร้อม!</div>
                     </div>
                     <div class="tap-choices" id="tap-p2-choices">
@@ -309,6 +331,7 @@
                             <span class="player-name display-p1-name-txt">น้องอันดา</span>
                             <span class="tap-score" id="tap-p1-score">0</span>
                         </div>
+                        <div class="prank-tray mini-tray" id="tap-p1-pranks"></div>
                         <div class="tap-status" id="tap-p1-status">เตรียมพร้อม!</div>
                     </div>
                     <div class="tap-choices" id="tap-p1-choices">
@@ -360,8 +383,13 @@
             </header>
 
             <div class="embed-selector-container">
-                <label for="embed-game-select">🎮 เลือกเกมจาก Wordwall:</label>
+                <label for="embed-game-select">🎮 เลือกเกมจาก Wordwall และเกมแต่งตัวภายนอก:</label>
                 <select id="embed-game-select" class="embed-select">
+                    <option value="../../../น้องพราว/เกม_จิ้มภาพออกเสียง/index.html">🦄 Prow Phonics Arcade (มินิเกมออกเสียงของน้องพราว)</option>
+                    <option value="https://scratch.mit.edu/projects/322006604/embed">🎀 Scratch Dress-Up Game (เกมแต่งตัวดีไซเนอร์พรีเมียม)</option>
+                    <option value="https://scratch.mit.edu/projects/1120270068/embed">🧸 Scratch Chibi Creator (เกมแต่งตัวตุ๊กตาน่ารัก)</option>
+                    <option value="https://wordwall.net/embed/17395027?themeId=1&ref=oembed">🧥 Wordwall Clothes Dress Up (เกมเรียนรู้เครื่องแต่งกาย)</option>
+                    <option value="https://wordwall.net/embed/30743603?themeId=22&ref=oembed">🎩 Wordwall Clothes Matching (เกมจับคู่เครื่องแต่งตัว)</option>
                     <option value="https://wordwall.net/embed/782810ba57114a9c9e158a8601a1dcbc?themeId=22&ref=oembed">🎈 Jobs and Occupations - Vocabulary Balloon Pop</option>
                     <option value="https://wordwall.net/embed/d56df885cfb0403c9791fc4b85ee643e?themeId=23&ref=oembed">🚒 Jobs and Occupations - Maze Chase Game</option>
                     <option value="https://wordwall.net/embed/9298c3d91d234705b161ebceb8ca7ca2?themeId=58&ref=oembed">🛸 Phonics spelling - Oxford Phonics Quiz</option>
@@ -435,6 +463,91 @@
                     <p>พยายามใหม่อีกครั้งนะเด็กๆ</p>
                     <button id="spooky-retry-btn" class="btn btn-primary">ลองใหม่อีกรอบ 🔄</button>
                 </div>
+            </div>
+        </div>
+
+        <!-- Screen 10: เกมแต่งตัวอาชีพ Job Dress-Up Screen -->
+        <div id="dressup-screen" class="screen">
+            <header class="game-header">
+                <button class="btn btn-icon btn-back-menu">🎮 คลังเกมส์</button>
+                <div class="game-title">Job Dress-Up 👗</div>
+                <button class="btn btn-icon mute-toggle-btn">🔊 มีเสียง</button>
+            </header>
+
+            <!-- แถบแจ้งคะแนนสะสมและเหรียญประจำหน้าจอ -->
+            <div class="spelling-hud">
+                <div class="hud-item">🪙 เหรียญผู้แต่ง: <span id="dressup-coins-display">0</span></div>
+                <div class="hud-item">🏆 คะแนนแต่งตัว: <span id="dressup-score-display">0</span></div>
+            </div>
+
+            <!-- แถบประกาศเป้าหมาย/โจทย์ท้าทายการแต่งตัว (Challenge Prompt Banner) -->
+            <div class="dressup-prompt-container">
+                <div class="dressup-prompt-card" id="dressup-prompt-card">
+                    💡 <span id="dressup-challenge-text">ช่วยแต่งตัวให้ น้องอันดา เป็น คุณหมอ (Doctor) หน่อยนะ!</span>
+                </div>
+            </div>
+
+            <div class="dressup-main-layout">
+                <!-- ฝั่งซ้าย: ตัวการ์ตูนตุ๊กตาแสดงผลเสื้อผ้าแต่งตัว -->
+                <div class="dressup-left-canvas">
+                    <!-- แท็บเลือกสลับตัวละคร Anda / Achi -->
+                    <div class="char-switch-tabs">
+                        <button id="dressup-char-anda" class="char-tab-btn active">👧 น้องอันดา</button>
+                        <button id="dressup-char-achi" class="char-tab-btn">👦 พี่อชิ</button>
+                    </div>
+
+                    <!-- พื้นหลังเวทีการแสดงตัวการ์ตูนแต่งตัว -->
+                    <div class="dressup-avatar-stage">
+                        <div class="dressup-avatar-card" id="dressup-avatar-card">
+                            <!-- ตัวการ์ตูน CSS Vector Avatar -->
+                            <div class="avatar-doll" id="avatar-doll-base">
+                                <div class="doll-hair-back" id="doll-hair-back"></div>
+                                <div class="doll-head">
+                                    <div class="doll-hair-top" id="doll-hair-top"></div>
+                                    <div class="doll-eyes">
+                                        <div class="doll-eye doll-eye-left"></div>
+                                        <div class="doll-eye doll-eye-right"></div>
+                                    </div>
+                                    <div class="doll-cheeks">
+                                        <div class="doll-cheek doll-cheek-left"></div>
+                                        <div class="doll-cheek doll-cheek-right"></div>
+                                    </div>
+                                    <div class="doll-mouth"></div>
+                                </div>
+                                <div class="doll-body"></div>
+                                
+                                <!-- เลเยอร์เครื่องแต่งกายซ้อนทับ (Clothes Layers Overlay) -->
+                                <div class="apparel-layer headwear-slot" id="apparel-headwear"></div>
+                                <div class="apparel-layer body-slot" id="apparel-body"></div>
+                                <div class="apparel-layer tool-slot" id="apparel-tool"></div>
+                            </div>
+                            <!-- แท็กบอกชื่ออาชีพที่แต่งอยู่อย่างน่ารัก -->
+                            <div class="avatar-career-tag" id="avatar-career-tag">นักแต่งตัวฝึกหัด</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ฝั่งขวา: ตู้เสื้อผ้า Wardrobe เลือกเสื้อผ้าตามประเภท -->
+                <div class="dressup-right-wardrobe">
+                    <!-- แถบประเภทตู้เสื้อผ้า (Category Tabs) -->
+                    <div class="wardrobe-tabs">
+                        <button class="wardrobe-tab-btn active" data-category="head">👒 เครื่องหัว / หมวก</button>
+                        <button class="wardrobe-tab-btn" data-category="body">👔 ชุดฟอร์ม / เสื้อ</button>
+                        <button class="wardrobe-tab-btn" data-category="tool">🩺 อุปกรณ์ประจำกาย</button>
+                    </div>
+                    
+                    <!-- กริดแสดงเสื้อผ้าที่มีให้เลือก -->
+                    <div class="wardrobe-items-grid" id="wardrobe-items-container">
+                        <!-- ถูกสร้างจาก JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- แถบปุ่มควบคุมด้านล่างหน้าจอ -->
+            <div class="dressup-footer-actions">
+                <button id="dressup-reset-btn" class="btn btn-outline" style="border-color: #ef4444; color: #ef4444;">🧹 ถอดเสื้อผ้าออก</button>
+                <button id="dressup-freestyle-btn" class="btn btn-secondary">🎨 แต่งชุดตามใจชอบ</button>
+                <button id="dressup-submit-btn" class="btn btn-primary">✅ ส่งคำตอบแต่งตัว</button>
             </div>
         </div>
 

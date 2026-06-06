@@ -1757,3 +1757,747 @@ body {
     .spooky-marker { font-size: 20px; }
     .exit-marker { font-size: 18px; }
 }
+
+/* --- [ระบบการ์ดแกล้งกัน Prank Battle System] --- */
+
+/* แผงถาดแกล้งเพื่อน */
+.prank-bar-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 8px;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+
+.prank-tray {
+    display: flex;
+    gap: 8px;
+}
+
+.prank-tray.mini-tray {
+    background: transparent;
+    padding: 0;
+    margin: 0;
+}
+
+.prank-bubble-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid #e2e8f0;
+    background: white;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.25);
+}
+
+.prank-bubble-btn:active {
+    transform: scale(0.9);
+}
+
+.prank-bubble-btn.disabled {
+    opacity: 0.3;
+    filter: grayscale(100%);
+    pointer-events: none;
+}
+
+.prank-badge-count {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    background: #ef4444;
+    color: white;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 5px;
+    border-radius: 10px;
+    border: 1px solid white;
+}
+
+/* เอฟเฟกต์แกล้ง: หมอกบังตา (Spooky Fogged) */
+.prank-fogged {
+    position: relative;
+    pointer-events: none;
+}
+
+.prank-fogged::after {
+    content: '🌫️ มืดมัวหลงทาง!';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 11, 42, 0.88);
+    backdrop-filter: blur(14px);
+    border-radius: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #e9d5ff;
+    font-size: 20px;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(168, 85, 247, 0.6);
+    z-index: 99;
+    animation: prankSmokeDrift 3s ease-in-out infinite alternate;
+}
+
+@keyframes prankSmokeDrift {
+    0% { filter: contrast(100%) brightness(100%); }
+    100% { filter: contrast(90%) brightness(80%); }
+}
+
+/* เอฟเฟกต์แกล้ง: จอหมุนกลับหัว (Flipped) */
+.prank-flipped {
+    transform: rotate(180deg) !important;
+    transition: transform 0.6s cubic-bezier(0.68, -0.6, 0.27, 1.55);
+}
+
+/* เอฟเฟกต์แกล้ง: แช่แข็งปุ่มกด (Frozen) */
+.prank-frozen {
+    position: relative;
+    pointer-events: none;
+}
+
+.prank-frozen::after {
+    content: '❄️ ปุ่มแข็งตัว!';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(219, 234, 254, 0.65);
+    border: 3px solid #60a5fa;
+    box-shadow: inset 0 0 20px #3b82f6;
+    border-radius: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1e3a8a;
+    font-size: 20px;
+    font-weight: 800;
+    text-shadow: 0 0 6px #93c5fd;
+    z-index: 99;
+    animation: prankIceCrack 0.5s ease-out;
+}
+
+@keyframes prankIceCrack {
+    0% { opacity: 0; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+/* ธีมพิเศษในสโตร์สำหรับของแกล้ง */
+.store-item-card.prank-item {
+    background: #fffbfa;
+    border-color: #ffd8d1;
+}
+
+.store-item-card.prank-item .store-item-btn.buyable {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.2);
+}
+
+/* --- [เกมแต่งตัวอาชีพ Job Dress-Up Styles] --- */
+
+#dressup-screen {
+    background: radial-gradient(circle at center, #fdf2f8 0%, #faf5ff 100%);
+}
+
+.dressup-prompt-container {
+    width: 100%;
+    margin-top: 8px;
+    padding: 0 16px;
+    box-sizing: border-box;
+}
+
+.dressup-prompt-card {
+    background: white;
+    border: 3px dashed #f472b6;
+    border-radius: 16px;
+    padding: 14px 20px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #8b5cf6;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.08);
+}
+
+.dressup-main-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 20px;
+    padding: 16px;
+    box-sizing: border-box;
+    height: calc(100vh - 250px);
+    min-height: 440px;
+}
+
+@media (max-width: 768px) {
+    .dressup-main-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+}
+
+/* ฝั่งซ้าย: Stage และ Avatar */
+.dressup-left-canvas {
+    background: white;
+    border: 2px solid #f3e8ff;
+    border-radius: 24px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 6px 16px rgba(139, 92, 246, 0.04);
+}
+
+.char-switch-tabs {
+    display: flex;
+    background: #f3e8ff;
+    padding: 4px;
+    border-radius: 20px;
+    gap: 4px;
+    margin-bottom: 16px;
+}
+
+.char-tab-btn {
+    border: none;
+    background: transparent;
+    padding: 8px 16px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 16px;
+    cursor: pointer;
+    color: #6b7280;
+    transition: all 0.2s;
+}
+
+.char-tab-btn.active {
+    background: white;
+    color: #8b5cf6;
+    box-shadow: 0 2px 6px rgba(139, 92, 246, 0.15);
+}
+
+.dressup-avatar-stage {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.dressup-avatar-card {
+    background: linear-gradient(180deg, #fdf4ff 0%, #f5f3ff 100%);
+    border: 2px solid #fae8ff;
+    border-radius: 20px;
+    padding: 24px;
+    width: 240px;
+    height: 310px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: inset 0 2px 10px rgba(236, 72, 153, 0.05);
+    position: relative;
+}
+
+/* คาแรกเตอร์ตุ๊กตา Doll Drawing */
+.avatar-doll {
+    width: 140px;
+    height: 200px;
+    position: relative;
+    margin-top: 10px;
+}
+
+/* หัวเด็ก */
+.doll-head {
+    width: 76px;
+    height: 76px;
+    background: #ffebd6;
+    border-radius: 50%;
+    position: absolute;
+    top: 15px;
+    left: 32px;
+    z-index: 5;
+    border: 2px solid #f1c79e;
+}
+
+/* ตา (มีอนิเมชั่นกะพริบตา) */
+.doll-eyes {
+    display: flex;
+    justify-content: space-between;
+    width: 38px;
+    position: absolute;
+    top: 32px;
+    left: 19px;
+}
+
+.doll-eye {
+    width: 8px;
+    height: 8px;
+    background: #1e293b;
+    border-radius: 50%;
+    position: relative;
+    animation: dollBlink 4s infinite;
+}
+
+.doll-eye::after {
+    content: '';
+    width: 2px;
+    height: 2px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 1px;
+    left: 2px;
+}
+
+@keyframes dollBlink {
+    0%, 96%, 100% { transform: scaleY(1); }
+    98% { transform: scaleY(0.1); }
+}
+
+/* แก้มแดงและปากยิ้ม */
+.doll-cheeks {
+    display: flex;
+    justify-content: space-between;
+    width: 50px;
+    position: absolute;
+    top: 44px;
+    left: 13px;
+}
+
+.doll-cheek {
+    width: 8px;
+    height: 4px;
+    background: rgba(239, 68, 68, 0.35);
+    border-radius: 50%;
+}
+
+.doll-mouth {
+    width: 12px;
+    height: 6px;
+    border-bottom: 2px solid #b91c1c;
+    border-radius: 0 0 10px 10px;
+    position: absolute;
+    top: 48px;
+    left: 32px;
+}
+
+/* ตัวเด็ก */
+.doll-body {
+    width: 52px;
+    height: 86px;
+    background: #ffebd6;
+    border-radius: 14px 14px 4px 4px;
+    position: absolute;
+    top: 86px;
+    left: 44px;
+    z-index: 3;
+    border: 2px solid #f1c79e;
+    border-top: none;
+}
+
+/* ผมเด็กชาย / เด็กหญิง */
+.doll-hair-top {
+    position: absolute;
+    top: -6px;
+    left: -2px;
+    width: 80px;
+    height: 32px;
+    z-index: 6;
+    pointer-events: none;
+}
+
+.doll-hair-back {
+    position: absolute;
+    width: 100px;
+    height: 60px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* จัดสไตล์ผมเด็กหญิง (น้องอันดา) */
+.char-doll-anda .doll-hair-top {
+    background: #854d0e; /* ผมสีน้ำตาลเข้ม */
+    border-radius: 40px 40px 10px 10px;
+    box-shadow: inset 0 3px 6px rgba(0,0,0,0.1);
+}
+
+.char-doll-anda .doll-hair-top::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 10px;
+    width: 60px;
+    height: 12px;
+    background: #854d0e;
+    border-radius: 0 0 20px 20px; /* หน้าม้าเต่อ */
+}
+
+.char-doll-anda .doll-hair-back {
+    display: block;
+}
+
+/* แกะผมแกละซ้ายขวา */
+.char-doll-anda .doll-hair-back::before,
+.char-doll-anda .doll-hair-back::after {
+    content: '🎀';
+    font-size: 16px;
+    position: absolute;
+    top: 32px;
+    z-index: 10;
+}
+
+.char-doll-anda .doll-hair-back::before {
+    left: 18px;
+    transform: rotate(-30deg);
+}
+
+.char-doll-anda .doll-hair-back::after {
+    right: 18px;
+    transform: rotate(30deg);
+}
+
+/* จัดสไตล์ผมเด็กชาย (พี่อชิ) */
+.char-doll-achi .doll-hair-top {
+    background: #1e293b; /* ผมดำเข้ม */
+    border-radius: 40px 40px 0 0;
+    clip-path: polygon(0% 100%, 12% 40%, 25% 100%, 38% 30%, 50% 100%, 65% 35%, 78% 100%, 88% 45%, 100% 100%, 100% 0%, 0% 0%); /* ผมแหลมๆ Spiky */
+}
+
+.char-doll-achi .doll-hair-back {
+    display: none; /* ไม่มีผมแกละด้านหลัง */
+}
+
+/* ช่องแต่งตัวเลเยอร์ overlays */
+.apparel-layer {
+    position: absolute;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+/* หมวก */
+.headwear-slot {
+    top: -24px;
+    left: 0;
+    height: 70px;
+    font-size: 56px;
+    z-index: 12;
+}
+
+/* เสื้อ / ชุดฟอร์ม */
+.body-slot {
+    top: 82px;
+    left: 40px;
+    width: 60px;
+    height: 90px;
+    z-index: 10;
+}
+
+/* อุปกรณ์ถือ */
+.tool-slot {
+    bottom: 20px;
+    right: 4px;
+    width: 50px;
+    height: 50px;
+    font-size: 44px;
+    z-index: 11;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: floatTool 2s ease-in-out infinite alternate;
+}
+
+@keyframes floatTool {
+    0% { transform: translateY(0) rotate(0deg); }
+    100% { transform: translateY(-6px) rotate(10deg); }
+}
+
+/* เสื้อผ้าแบบเวกเตอร์ CSS (Vector Uniform Overlays) */
+.css-uniform {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px 10px 4px 4px;
+    border: 2px solid #475569;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+/* สไตล์เสื้อของแต่ละอาชีพ */
+.css-uniform.uniform-chef {
+    background: white;
+    border-color: #94a3b8;
+}
+
+.css-uniform.uniform-chef::before {
+    content: '🔴\A•\A•';
+    white-space: pre;
+    font-size: 8px;
+    color: #ef4444;
+    position: absolute;
+    top: 15px;
+    left: 10px;
+    line-height: 1.2;
+}
+
+.css-uniform.uniform-chef::after {
+    content: '';
+    width: 100%;
+    height: 10px;
+    background: #ef4444; /* ผ้าพันคอสีแดง */
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 8px 8px 0 0;
+}
+
+.css-uniform.uniform-doctor {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.css-uniform.uniform-doctor::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 18px;
+    width: 20px;
+    height: 100%;
+    background: #e2e8f0; /* เสื้อเชิ้ตข้างใน */
+    border-left: 2px solid #cbd5e1;
+    border-right: 2px solid #cbd5e1;
+}
+
+.css-uniform.uniform-doctor::after {
+    content: '🩺';
+    font-size: 14px;
+    position: absolute;
+    top: 10px;
+    left: 18px;
+}
+
+.css-uniform.uniform-police {
+    background: #1e3a8a;
+    border-color: #172554;
+}
+
+.css-uniform.uniform-police::before {
+    content: '⭐';
+    font-size: 10px;
+    color: #eab308;
+    position: absolute;
+    top: 15px;
+    left: 21px;
+}
+
+.css-uniform.uniform-police::after {
+    content: '';
+    width: 100%;
+    height: 8px;
+    background: #eab308; /* เข็มขัดทอง */
+    position: absolute;
+    bottom: 15px;
+    left: 0;
+}
+
+.css-uniform.uniform-firefighter {
+    background: #334155;
+    border-color: #1e293b;
+}
+
+.css-uniform.uniform-firefighter::before {
+    content: '';
+    width: 100%;
+    height: 6px;
+    background: #eab308; /* แถบสะท้อนแสงเหลือง 1 */
+    position: absolute;
+    top: 20px;
+    left: 0;
+    box-shadow: 0 40px 0 #eab308; /* แถบสะท้อนแสง 2 */
+}
+
+.css-uniform.uniform-pilot {
+    background: #0f172a;
+    border-color: #020617;
+}
+
+.css-uniform.uniform-pilot::before {
+    content: '👔';
+    font-size: 14px;
+    position: absolute;
+    top: 0;
+    left: 19px;
+}
+
+.css-uniform.uniform-pilot::after {
+    content: '';
+    width: 10px;
+    height: 4px;
+    background: #eab308; /* บั้งที่บ่าทอง */
+    position: absolute;
+    top: 4px;
+    left: 2px;
+    box-shadow: 42px 0 0 #eab308;
+}
+
+.css-uniform.uniform-artist {
+    background: #f1f5f9;
+    background-image: repeating-linear-gradient(90deg, transparent, transparent 6px, #ef4444 6px, #ef4444 8px); /* เสื้อลายทางแดง */
+    border-color: #cbd5e1;
+}
+
+.css-uniform.uniform-artist::before {
+    content: '';
+    width: 100%;
+    height: 8px;
+    background: #3b82f6; /* เอี๊ยมยีนส์ทับ */
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    border-radius: 0 0 2px 2px;
+}
+
+/* แท็กอาชีพ */
+.avatar-career-tag {
+    background: #8b5cf6;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 16px;
+    border-radius: 20px;
+    box-shadow: 0 3px 6px rgba(139,92,246,0.2);
+    border: 2px solid white;
+    text-align: center;
+}
+
+/* ฝั่งขวา: Wardrobe ตู้เสื้อผ้า */
+.dressup-right-wardrobe {
+    background: white;
+    border: 2px solid #fae8ff;
+    border-radius: 24px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 6px 16px rgba(236,72,153,0.03);
+    overflow: hidden;
+}
+
+.wardrobe-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.wardrobe-tab-btn {
+    border: 2px solid #f3e8ff;
+    background: #faf5ff;
+    padding: 10px 4px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 12px;
+    cursor: pointer;
+    color: #7c3aed;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.wardrobe-tab-btn.active {
+    background: #8b5cf6;
+    border-color: #8b5cf6;
+    color: white;
+    box-shadow: 0 4px 10px rgba(139, 92, 246, 0.25);
+}
+
+.wardrobe-items-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+    gap: 10px;
+    overflow-y: auto;
+    padding-right: 4px;
+    max-height: 100%;
+}
+
+.wardrobe-item-card {
+    background: #fafafa;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 10px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.wardrobe-item-card:hover {
+    transform: translateY(-3px);
+    border-color: #c084fc;
+    background: #faf5ff;
+}
+
+.wardrobe-item-card.equipped-item {
+    border-color: #db2777;
+    background: #fff5f7;
+    box-shadow: 0 0 8px rgba(219, 39, 119, 0.15);
+}
+
+.wardrobe-item-icon {
+    font-size: 38px;
+    margin-bottom: 6px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* เวกเตอร์เสื้อขนาดเล็กในการ์ดเลือกเสื้อผ้า */
+.wardrobe-item-icon .css-uniform {
+    width: 32px;
+    height: 38px;
+}
+
+.wardrobe-item-name {
+    font-size: 11px;
+    font-weight: 700;
+    color: #4b5563;
+}
+
+.wardrobe-item-job {
+    font-size: 9px;
+    color: #9ca3af;
+    margin-top: 2px;
+}
+
+/* ปุ่มคอนโทรลด้านล่าง */
+.dressup-footer-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+    margin-top: 14px;
+    padding: 0 16px;
+    box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+    .dressup-footer-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
