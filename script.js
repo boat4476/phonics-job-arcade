@@ -70,6 +70,17 @@ let gameState = {
         targetWord: '', // คำศัพท์เป้าหมาย
         scrambledLetters: [], // ตัวอักษรปนกัน
         completedCount: 0
+    },
+    
+    // --- สถานะย่อยของเกมจับคู่ความเร็ว Speed Tap ---
+    tap: {
+        score1: 0,
+        score2: 0,
+        targetJob: null,
+        choices: [],
+        p1Locked: false,
+        p2Locked: false,
+        active: false
     }
 };
 
@@ -86,7 +97,8 @@ const screens = {
     'arcade-screen': document.getElementById('arcade-screen'),
     'xo-screen': document.getElementById('xo-screen'),
     'memory-screen': document.getElementById('memory-screen'),
-    'spelling-screen': document.getElementById('spelling-screen')
+    'spelling-screen': document.getElementById('spelling-screen'),
+    'tap-screen': document.getElementById('tap-screen')
 };
 
 // ข้อมูลหน้ากรอกผู้เล่น
@@ -108,6 +120,19 @@ const winTitle = document.getElementById('win-title');
 const winSubtitle = document.getElementById('win-subtitle');
 const modalNextBtn = document.getElementById('modal-next-btn');
 const modalHomeBtn = document.getElementById('modal-home-btn');
+
+// Speed Tap DOM elements
+const tapP1ScoreEl = document.getElementById('tap-p1-score');
+const tapP2ScoreEl = document.getElementById('tap-p2-score');
+const tapP1StatusEl = document.getElementById('tap-p1-status');
+const tapP2StatusEl = document.getElementById('tap-p2-status');
+const tapP1ChoicesEl = document.getElementById('tap-p1-choices');
+const tapP2ChoicesEl = document.getElementById('tap-p2-choices');
+const tapP1PromptEl = document.getElementById('tap-p1-prompt');
+const tapP2PromptEl = document.getElementById('tap-p2-prompt');
+const tapSpeakBtn = document.getElementById('tap-speak-btn');
+const tapP1PanelContainer = document.getElementById('tap-p1-panel');
+const tapP2PanelContainer = document.getElementById('tap-p2-panel');
 
 // --- [ระบบสลับหน้าจอ - Router] ---
 function showScreen(screenId) {
@@ -817,6 +842,167 @@ function handleSpellingSuccess() {
     gameState.spelling.success = true;
 }
 
+// --- [ ⚡ เกมที่ 4: Phonics Speed Tap ] ---
+
+function initSpeedTap() {
+    hideWinModal();
+    gameState.tap.score1 = 0;
+    gameState.tap.score2 = 0;
+    gameState.tap.p1Locked = false;
+    gameState.tap.p2Locked = false;
+    gameState.tap.active = true;
+
+    tapP1ScoreEl.textContent = '0';
+    tapP2ScoreEl.textContent = '0';
+
+    nextSpeedTapRound();
+}
+
+function nextSpeedTapRound() {
+    if (!gameState.tap.active) return;
+
+    // ล้างล็อกเอาต์
+    gameState.tap.p1Locked = false;
+    gameState.tap.p2Locked = false;
+    tapP1PanelContainer.classList.remove('locked');
+    tapP2PanelContainer.classList.remove('locked');
+    tapP1StatusEl.textContent = 'เตรียมกด!';
+    tapP2StatusEl.textContent = 'เตรียมกด!';
+    tapP1StatusEl.style.color = '';
+    tapP2StatusEl.style.color = '';
+
+    // สุ่มเลือก 1 อาชีพที่เป็นโจทย์ (Target)
+    const availableJobs = occupations;
+    const targetIdx = Math.floor(Math.random() * availableJobs.length);
+    gameState.tap.targetJob = availableJobs[targetIdx];
+
+    // สุ่มดึงตัวเลือกหลอกอีก 3 อาชีพมารวมกันเป็น 4 ตัวเลือก
+    let distractors = occupations.filter(job => job.id !== gameState.tap.targetJob.id);
+    distractors = shuffleArray(distractors).slice(0, 3);
+
+    // รวมโจทย์และตัวเลือกหลอก จากนั้นสับตำแหน่งอีกรอบเพื่อความยุติธรรม
+    const choices = shuffleArray([gameState.tap.targetJob, ...distractors]);
+    gameState.tap.choices = choices;
+
+    // อัปเดตตัวหนังสือโจทย์ตรงกลางจอ
+    const jobTh = gameState.tap.targetJob.nameTh;
+    const jobEn = gameState.tap.targetJob.nameEn;
+    tapP1PromptEl.textContent = `จิ้มหาคำว่า: ${jobEn.toUpperCase()} (${jobTh})`;
+    tapP2PromptEl.textContent = `Find: ${jobEn.toUpperCase()} (${jobTh})`;
+
+    // ออกเสียงคำอังกฤษ
+    speakEnglish(jobEn);
+
+    // วาดปุ่มตัวเลือกฝั่งผู้เล่น 1 (น้องอันดา - ด้านล่าง)
+    drawSpeedTapChoices(1, tapP1ChoicesEl);
+
+    // วาดปุ่มตัวเลือกฝั่งผู้เล่น 2 (พี่อชิ - ด้านบน)
+    drawSpeedTapChoices(2, tapP2ChoicesEl);
+}
+
+function drawSpeedTapChoices(playerNum, containerEl) {
+    containerEl.innerHTML = '';
+    gameState.tap.choices.forEach((choice, index) => {
+        const btn = document.createElement('div');
+        btn.classList.add('tap-choice-btn');
+
+        const img = document.createElement('img');
+        img.classList.add('tap-choice-img');
+        img.src = `images/${choice.id}.png`;
+        img.alt = choice.nameEn;
+
+        const word = document.createElement('span');
+        word.classList.add('tap-choice-word');
+        word.textContent = choice.nameEn;
+
+        btn.appendChild(img);
+        btn.appendChild(word);
+
+        btn.addEventListener('click', () => handleTapChoice(playerNum, choice, btn));
+        containerEl.appendChild(btn);
+    });
+}
+
+function handleTapChoice(playerNum, choice, btnEl) {
+    if (!gameState.tap.active) return;
+
+    // ตรวจสอบสถานะล็อกเอาต์ของคนกด
+    if (playerNum === 1 && gameState.tap.p1Locked) return;
+    if (playerNum === 2 && gameState.tap.p2Locked) return;
+
+    const isCorrect = choice.id === gameState.tap.targetJob.id;
+
+    if (isCorrect) {
+        // แตะถูก! ให้หยุดบอร์ดทันที ป้องกันอีกคนแย่งกด
+        gameState.tap.active = false;
+        
+        btnEl.classList.add('correct');
+        playSound('correct');
+
+        // เพิ่มคะแนน
+        if (playerNum === 1) {
+            gameState.tap.score1++;
+            tapP1ScoreEl.textContent = gameState.tap.score1;
+            tapP1StatusEl.textContent = 'เก่งมาก! +1';
+            tapP1StatusEl.style.color = '#10b981';
+            speakEnglish(`${gameState.player1.name} correct! ${gameState.tap.targetJob.sentence}`);
+        } else {
+            gameState.tap.score2++;
+            tapP2ScoreEl.textContent = gameState.tap.score2;
+            tapP2StatusEl.textContent = 'เก่งมาก! +1';
+            tapP2StatusEl.style.color = '#10b981';
+            speakEnglish(`${gameState.player2.name} correct! ${gameState.tap.targetJob.sentence}`);
+        }
+
+        // เช็คคะแนนรวมว่าใครถึง 5 ก่อน
+        setTimeout(() => {
+            if (gameState.tap.score1 >= 5 || gameState.tap.score2 >= 5) {
+                const winnerName = gameState.tap.score1 >= 5 ? gameState.player1.name : gameState.player2.name;
+                playSound('win');
+                showCelebrationModal(`🏆 ${winnerName} ชนะศึกบัสเซอร์ความเร็ว! 🏆`, `คะแนนรวม ${gameState.tap.score1} ต่อ ${gameState.tap.score2}`, 'tap');
+            } else {
+                gameState.tap.active = true;
+                nextSpeedTapRound();
+            }
+        }, 2000); // ดีเลย์ 2 วินาทีให้เห็นเอฟเฟกต์เฉลยและฟังประโยคภาษาอังกฤษ
+
+    } else {
+        // แตะผิด! ล็อกเอาต์ผู้เล่นคนนี้ 1.5 วินาที
+        playSound('wrong');
+        btnEl.classList.add('wrong');
+        
+        if (playerNum === 1) {
+            gameState.tap.p1Locked = true;
+            tapP1PanelContainer.classList.add('locked');
+            tapP1StatusEl.textContent = 'ล็อก 1.5 วิ! ❌';
+            tapP1StatusEl.style.color = '#ef4444';
+            setTimeout(() => {
+                btnEl.classList.remove('wrong');
+                if (gameState.tap.active) {
+                    gameState.tap.p1Locked = false;
+                    tapP1PanelContainer.classList.remove('locked');
+                    tapP1StatusEl.textContent = 'กดได้แล้ว!';
+                    tapP1StatusEl.style.color = '';
+                }
+            }, 1500);
+        } else {
+            gameState.tap.p2Locked = true;
+            tapP2PanelContainer.classList.add('locked');
+            tapP2StatusEl.textContent = 'ล็อก 1.5 วิ! ❌';
+            tapP2StatusEl.style.color = '#ef4444';
+            setTimeout(() => {
+                btnEl.classList.remove('wrong');
+                if (gameState.tap.active) {
+                    gameState.tap.p2Locked = false;
+                    tapP2PanelContainer.classList.remove('locked');
+                    tapP2StatusEl.textContent = 'กดได้แล้ว!';
+                    tapP2StatusEl.style.color = '';
+                }
+            }, 1500);
+        }
+    }
+}
+
 // --- [ หน้าต่างประกาศชัยชนะ Winner Modal Controller ] ---
 
 let currentWinModalGame = 'xo';
@@ -845,6 +1031,8 @@ modalNextBtn.addEventListener('click', () => {
         gameState.spelling.currentWordIndex = 0;
         gameState.spelling.score = 0;
         initSpelling();
+    } else if (currentWinModalGame === 'tap') {
+        initSpeedTap();
     }
 });
 
@@ -901,6 +1089,13 @@ document.getElementById('play-spelling-card').addEventListener('click', () => {
     gameState.spelling.currentWordIndex = 0;
     gameState.spelling.score = 0;
     initSpelling();
+});
+
+document.getElementById('play-tap-card').addEventListener('click', () => {
+    initAudio();
+    playSound('click');
+    showScreen('tap-screen');
+    initSpeedTap();
 });
 
 // ปุ่มกดกากบาทสีมุมซ้ายบนเพื่อย้อนกลับเมนูหลักอาเขตคลังเกมส์
@@ -960,6 +1155,14 @@ document.getElementById('mem-reset-btn').addEventListener('click', initMemory);
 document.getElementById('spell-speak-btn').addEventListener('click', () => {
     initAudio();
     speakEnglish(gameState.spelling.targetWord);
+});
+
+// ควบคุมปุ่มกดฟังเสียงอีกครั้งของเกม Speed Tap
+document.getElementById('tap-speak-btn').addEventListener('click', () => {
+    if (gameState.tap.active && gameState.tap.targetJob) {
+        initAudio();
+        speakEnglish(gameState.tap.targetJob.nameEn);
+    }
 });
 
 document.getElementById('spell-skip-btn').addEventListener('click', () => {

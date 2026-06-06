@@ -86,6 +86,15 @@
                     <button class="btn btn-primary btn-sm">คลิกเล่นฝึกสะกดคำ</button>
                 </div>
 
+                <!-- การ์ดเกม 4: Speed Tap -->
+                <div class="arcade-game-card" id="play-tap-card">
+                    <div class="game-badge blue-badge">แข่งกัน 2 คน</div>
+                    <div class="game-card-icon">⚡🔔</div>
+                    <h3>Phonics Speed Tap</h3>
+                    <p>แข่งกันกดเลือกรูปอาชีพให้ไวที่สุด ใครกดถูกเร็วกว่าได้คะแนน หน้าจอแบ่งครึ่งนั่งตรงข้ามกัน</p>
+                    <button class="btn btn-primary btn-sm">คลิกเล่นเกมบัสเซอร์</button>
+                </div>
+
             </div>
         </div>
 
@@ -230,6 +239,54 @@
 
             <div class="control-actions">
                 <button id="spell-skip-btn" class="btn btn-secondary">⏭️ ข้ามไปคำถัดไป</button>
+            </div>
+        </div>
+
+        <!-- Screen 6: เกมจับคู่ความเร็ว Split-Screen (Speed Tap Screen) -->
+        <div id="tap-screen" class="screen">
+            <header class="game-header">
+                <button class="btn btn-icon btn-back-menu">🎮 คลังเกมส์</button>
+                <div class="game-title">Phonics Speed Tap</div>
+                <button class="btn btn-icon mute-toggle-btn">🔊 มีเสียง</button>
+            </header>
+
+            <div class="tap-arena">
+                <!-- ผู้เล่น 2 (ฝั่งด้านบน หมุน 180 องศา) -->
+                <div class="tap-player-panel p2-panel" id="tap-p2-panel">
+                    <div class="tap-player-hud">
+                        <div class="avatar blue-avatar">👦</div>
+                        <div class="tap-score-info">
+                            <span class="player-name display-p2-name-txt">พี่อชิ</span>
+                            <span class="tap-score" id="tap-p2-score">0</span>
+                        </div>
+                        <div class="tap-status" id="tap-p2-status">เตรียมพร้อม!</div>
+                    </div>
+                    <div class="tap-choices" id="tap-p2-choices">
+                        <!-- ตัวเลือก 4 ช่อง จะสร้างจาก JS -->
+                    </div>
+                </div>
+
+                <!-- โซนตรงกลางแชร์ร่วมกัน (กระดานโจทย์) -->
+                <div class="tap-center-hub">
+                    <div class="tap-prompt-p2" id="tap-p2-prompt">หาคำว่า: ...</div>
+                    <button id="tap-speak-btn" class="speak-repeat-btn">🔊 ฟังอีกครั้ง (Listen)</button>
+                    <div class="tap-prompt-p1" id="tap-p1-prompt">Find: ...</div>
+                </div>
+
+                <!-- ผู้เล่น 1 (ฝั่งด้านล่าง หันปกติ) -->
+                <div class="tap-player-panel p1-panel" id="tap-p1-panel">
+                    <div class="tap-player-hud">
+                        <div class="avatar pink-avatar">👧</div>
+                        <div class="tap-score-info">
+                            <span class="player-name display-p1-name-txt">น้องอันดา</span>
+                            <span class="tap-score" id="tap-p1-score">0</span>
+                        </div>
+                        <div class="tap-status" id="tap-p1-status">เตรียมพร้อม!</div>
+                    </div>
+                    <div class="tap-choices" id="tap-p1-choices">
+                        <!-- ตัวเลือก 4 ช่อง จะสร้างจาก JS -->
+                    </div>
+                </div>
             </div>
         </div>
 
